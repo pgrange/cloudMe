@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) -n <VM_NAME> -i <ISO_FILE> [options]
+  -n <VM_NAME> : sets the name of the new VM to create (mandatory)
+  -m <VM_MEM> : RAM amount in MB (default ${vmMem})
+  -M <VM_VID_MEM> : RAM amount dedicated to video card (default ${vmMemVid})
+  -c <VM_CPU> : number of CPU (default ${vmCpu})
+  -C <VM_CPU_CAP> : percentage of usage of physical CPU (default ${vmCpuCap})
+  -d <DISK_SIZE> : disk allocation for the VM in GB (default ${vmCreateDiskSize})
+  -a : VM will not be created. Parameters will be adjusted (does not affect DISK_SIZE yet)
+  -i <ISO_FILE> : name of an iso to mount from ${isoDir} (mandatory)
+  -h : display this help" >&2
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+vmName=
+isoName=
+adjust=0
+while getopts n:m:M:c:C:d:ai:h name
+do
+  case $name in
+    n)
+      vmName="$OPTARG"
+      ;;
+    m)
+      vmMem="$OPTARG"
+      [ $(nonNumeric ${vmMem}) -eq 1 ] && usage "-m needs numeric argument"
+      ;;
+    M)
+      vmMemVid="$OPTARG"
+      [ $(nonNumeric ${vmMemVid}) -eq 1 ] && usage "-M needs numeric argument"
+      ;;
+    c)
+      vmCpu="$OPTARG"
+      [ $(nonNumeric ${vmCpu}) -eq 1 ] && usage "-c needs numeric argument"
+      ;;
+    C)
+      vmCpuCap="$OPTARG"
+      [ $(nonNumeric ${vmCpuCap}) -eq 1 ] && usage "-C needs numeric argument"
+      ;;
+    d)
+      vmCreateDiskSize="$OPTARG"
+      [ $(nonNumeric ${vmCreateDiskSize}) -eq 1 ] && usage "-d needs numeric argument"
+      ;;
+    a)
+      adjust=1
+      ;;
+    i)
+      isoName="$OPTARG"
+      [ -f ${isoDir}/${isoName} ] || usage "${isoDir}/${isoName} does not exists"
+      ;;
+    h)
+      usage
+      ;;
+  esac
+done
+shift $(($OPTIND-1))
+
+[ ! -f .ssh_key -o ! -f .ssh_key.pub ] && rm -f .ssh_key .ssh_key.pub && ssh-keygen -N "" -t rsa -b 4096 -f .ssh_key -C "cloudMe"
+
+[ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
+[ -z "$isoName" ] && usage "-i <ISO_file> is mandatory"
+
+[ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
+cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
+vmName=${vmName}
+vmMem=${vmMem}
+vmMemVid=${vmMemVid}
+vmCpu=${vmCpu}
+vmCpuCap=${vmCpuCap}
+EOF
+
+if [ $adjust -eq 0 ]
+then
+  vmDisk=$(vm_disk_create ${vmName} ${vmCreateGroup} ${vmCreateDiskSize})
+  vm_create ${vmName} ${vmCreateGroup} ${isoName}
+fi

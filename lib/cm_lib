@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Following variables are default values. They can be redefined in .cloudMe.conf, ~/.config/cloudMe/cloudMe.conf or /etc/cloudMe.conf
+
+vmMem=512
+vmMemVid=12
+vmCpu=2
+vmCpuCap=50
+vmCreateGroup="templates"
+vmCreateDiskSize=10
+
+isoDir="$HOME/Documents/distribs/linux"
+
+# for now, can be : kvm (virtualbox planned)
+vmBackend=kvm
+. ${realDir}/${libDir}/${vmBackend}_lib
+
+# Common functions
+
+nonNumeric() {
+  noNum=$(echo "$@" | sed "s/[^0-9]//g")
+  [ "$noNum " != "$@ " ] && echo 1 || echo 0
+}
+
+# ConfFile search and source
+confFile=.cloudMe.conf
+[ -f ${confFile} ] || confFile=~/.config/cloudMe/cloudMe.conf
+[ -f ${confFile} ] || confFile=/etc/cloudMe.conf
+if [ -f ${confFile} ] ; then
+  . ${confFile}
+fi
