@@ -25,24 +25,30 @@ vm_disk_create() {
 
 vm_run() {
   vmName=$1
-  vmCreateGroup=$2
+  vmGroup=$2
   isoName=$3
+  guiOpt=$4
+
+  isoOpt="-cdrom ${isoDir}/${isoName}"
+  [ "${isoName} " == "none " ] && isoOpt=""
+
   vmNoGui="-sdl" # -no-quit
-  [ "$4 " == "gui " ] || vmNoGui="--display none"
+  [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
+
   [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf ] && . ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf
 
   qemu-system-${vmSystemType} \
     -enable-kvm \
-    -cdrom ${isoDir}/${isoName} \
+    ${isoOpt} \
     -boot order=d \
     -drive file="${vmDisk}",format=raw \
     -smp cpus=1,cores=${vmCpu},maxcpus=${vmCpu} \
     -m ${vmMem} \
     -name ${vmName} \
-    -D ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.log \
+    -D ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log \
     --daemonize \
     ${vmNoGui} \
-    >/dev/null 2>&1
+    #>/dev/null 2>&1
 }
 
 vm_create() {

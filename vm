@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) -n <VM_NAME> [options]
+  -n <VM_NAME> : sets the name of the new VM to create (mandatory)
+  -g <GROUP> : group the vm is in (default : templates)
+  -i <ISO_FILE> : name of an iso to mount from ${isoDir} (default : none)
+  -G : launch the GUI (console window)
+  -h : display this help" >&2
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+vmName=
+vmGroup=templates
+isoName=none
+guiMode=
+while getopts n:g:i:Gh name
+do
+  case $name in
+    n)
+      vmName="$OPTARG"
+      ;;
+    g)
+      vmGroup="$OPTARG"
+      ;;
+    i)
+      isoName="$OPTARG"
+      [ -f ${isoDir}/${isoName} ] || usage "${isoDir}/${isoName} does not exists"
+      ;;
+    G)
+      guiMode="gui"
+      ;;
+    h)
+      usage
+      ;;
+  esac
+done
+shift $(($OPTIND-1))
+
+[ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
+
+vm_run ${vmName} ${vmGroup} ${isoName} ${guiMode}
