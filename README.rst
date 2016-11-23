@@ -36,3 +36,28 @@ Once the machine created, it will start and you will have to make your template 
 You can create as much templates as you want.
 
 Note that vmCreate can also be used to adjust VM configuration (using -a switch). VM must be powered off first.
+
+Clone generation
+================
+
+Once your template is good, you can use it to generate new VMs ::
+
+ ./vmInstanciate -n archlinux -C 2
+
+will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
+
+Tools
+=====
+
+vmCreate - VM creation
+----------------------
+
+
+
+vm - running a VM
+-----------------
+
+
+
+vmInstanciate - making clones
+-----------------------------

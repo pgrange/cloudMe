@@ -9,6 +9,10 @@ vmCpuCap=50
 vmCreateGroup="templates"
 vmCreateDiskSize=10
 
+vmCount=1
+vmGroup="lan"
+vmSubGroup="base"
+
 isoDir="$HOME/Documents/distribs/linux"
 
 # for now, can be : kvm (virtualbox planned)

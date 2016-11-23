@@ -5,9 +5,8 @@ usage() {
   echo "usage : $(basename $0) -n <VM_NAME> -i <ISO_FILE> [options]
   -n <VM_NAME> : sets the name of the new VM to create (mandatory)
   -m <VM_MEM> : RAM amount in MB (default ${vmMem})
-  -M <VM_VID_MEM> : RAM amount dedicated to video card (default ${vmMemVid})
-  -c <VM_CPU> : number of CPU (default ${vmCpu})
-  -C <VM_CPU_CAP> : percentage of usage of physical CPU (default ${vmCpuCap})
+  -c <VM_CPU> : number of CPU cores (default ${vmCpu})
+  -C <VM_CPU_CAP> : percentage of usage of physical CPU (default ${vmCpuCap}) # not yet implemented
   -d <DISK_SIZE> : disk allocation for the VM in GB (default ${vmCreateDiskSize})
   -a : VM will not be created. Parameters will be adjusted (does not affect DISK_SIZE yet)
   -i <ISO_FILE> : name of an iso to mount from ${isoDir} (mandatory)
@@ -25,7 +24,7 @@ libName=cm_lib
 vmName=
 isoName=
 adjust=0
-while getopts n:m:M:c:C:d:ai:h name
+while getopts n:m:c:C:d:ai:h name
 do
   case $name in
     n)
@@ -35,18 +34,14 @@ do
       vmMem="$OPTARG"
       [ $(nonNumeric ${vmMem}) -eq 1 ] && usage "-m needs numeric argument"
       ;;
-    M)
-      vmMemVid="$OPTARG"
-      [ $(nonNumeric ${vmMemVid}) -eq 1 ] && usage "-M needs numeric argument"
-      ;;
     c)
       vmCpu="$OPTARG"
       [ $(nonNumeric ${vmCpu}) -eq 1 ] && usage "-c needs numeric argument"
       ;;
-    C)
-      vmCpuCap="$OPTARG"
-      [ $(nonNumeric ${vmCpuCap}) -eq 1 ] && usage "-C needs numeric argument"
-      ;;
+#    C)
+#      vmCpuCap="$OPTARG"
+#      [ $(nonNumeric ${vmCpuCap}) -eq 1 ] && usage "-C needs numeric argument"
+#      ;;
     d)
       vmCreateDiskSize="$OPTARG"
       [ $(nonNumeric ${vmCreateDiskSize}) -eq 1 ] && usage "-d needs numeric argument"
@@ -74,11 +69,10 @@ shift $(($OPTIND-1))
 cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
 vmName=${vmName}
 vmMem=${vmMem}
-vmMemVid=${vmMemVid}
 vmCpu=${vmCpu}
-vmCpuCap=${vmCpuCap}
 vmDisk=${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
 EOF
+# vmCpuCap=${vmCpuCap}
 
 if [ $adjust -eq 0 ]
 then

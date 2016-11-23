@@ -2,61 +2,80 @@
 
 vmBaseDir="$HOME/Documents/kvm/VMs"
 vmDiskExt="img"
-vmSystemType=x86_64
+vmSystemType=$(uname -m)
 
 vm_disk_create() {
-  vmName=$1
-  vmCreateGroup=$2
-  vmCreateDiskSize=$3
+  local vmName=$1
+  local vmCreateGroup=$2
+  local vmCreateDiskSize=$3
 
-  vmDisk=${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
-  if [ -f ${vmDisk} ]
+  local vmDisk="${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}"
+  if [ -f "${vmDisk}" ]
   then
-    echo ${vmDisk}
+    echo "${vmDisk}"
   else
-    vmDiskPath=$(dirname ${vmDisk})
-    mkdir -p $vmDiskPath || usage "unable to create ${vmDiskPath}"
-    qemu-img create -f raw ${vmDisk} ${vmCreateDiskSize}G >/dev/null >&2
+    local vmDiskPath=$(dirname "${vmDisk}")
+    mkdir -p "$vmDiskPath" || usage "unable to create ${vmDiskPath}"
+    qemu-img create -q -f qcow2 "${vmDisk}" ${vmCreateDiskSize}G >/dev/null >&2
     ret=$?
 
-    [ $ret -eq 0 ] && echo ${vmDisk} || usage "unable to create ${vmDisk}"
+    [ $ret -eq 0 ] && echo "${vmDisk}" || usage "unable to create ${vmDisk}"
   fi
 }
 
 vm_run() {
-  vmName=$1
-  vmGroup=$2
-  isoName=$3
-  guiOpt=$4
+  local vmName=$1
+  local vmGroup=$2
+  local isoName=$3
+  local guiOpt=$4
 
-  isoOpt="-cdrom ${isoDir}/${isoName}"
+  local isoOpt="-cdrom ${isoDir}/${isoName}"
   [ "${isoName} " == "none " ] && isoOpt=""
 
-  vmNoGui="-sdl" # -no-quit
+  local vmNoGui="-display sdl -no-quit"
   [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
-  [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf ] && . ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf
+  [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
 
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
     -boot order=d \
-    -drive file="${vmDisk}",format=raw \
+    -drive file="${vmDisk}",format=qcow2 \
     -smp cpus=1,cores=${vmCpu},maxcpus=${vmCpu} \
     -m ${vmMem} \
     -name ${vmName} \
-    -D ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log \
+    -D "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log" \
     --daemonize \
     ${vmNoGui} \
-    #>/dev/null 2>&1
+    >/dev/null 2>&1
 }
 
 vm_create() {
-  vmName=$1
-  vmCreateGroup=$2
-  isoName=$3
+  local vmName=$1
+  local vmGroup=$2
+  local isoName=$3
 
-  vmDisk=${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
-  [ -f ${vmDisk} ] || ${vmDisk}=$(vm_disk_create ${vmName} ${vmCreateGroup} ${vmCreateDiskSize})
-  vm_run ${vmName} ${vmCreateGroup} ${isoName} gui
+  local vmDisk="${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.${vmDiskExt}"
+  [ -f "${vmDisk}" ] || ${vmDisk}="$(vm_disk_create ${vmName} ${vmGroup} ${vmCreateDiskSize})"
+  vm_run ${vmName} ${vmGroup} "${isoName}" gui
+}
+
+vm_clone_disk() {
+  local vmSrcGroup=$1
+  local vmSrc=$2
+  local vmDestGroup=$3
+  local vmDest=$4
+
+  local vmSrcDir="${vmBaseDir}/${vmSrcGroup}/${vmSrc}"
+  local vmSrcCount=$(ps -A -o args | grep qemu-system-${vmSystemType} | grep -v grep | grep "${vmSrcDir}/" | wc -l)
+  [ ${vmSrcCount} -ne 0 ] && usage "can't clone a running vm"
+  . ${vmSrcDir}/${vmSrc}.conf
+  [ -f "${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDisk}"
+  chmod a-w "${vmDisk}"
+  local vmDestDir="${vmBaseDir}/${vmDestGroup}/${vmDest}"
+  local vmDestDisk="${vmDestDir}/${vmDest}.${vmDiskExt}"
+  mkdir -p "${vmDestDir}" || usage "unable to create ${vmDestDir}"
+  qemu-img create -q -f qcow2 -b "${vmDisk}" "${vmDestDisk}" >/dev/null >&2
+  echo "${vmDestDisk}"
 }
