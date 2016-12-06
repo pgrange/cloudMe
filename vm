@@ -3,7 +3,7 @@
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -n <VM_NAME> [options]
-  -n <VM_NAME> : sets the name of the new VM to create (mandatory)
+  -n <VM_NAME> : sets the name of the VM to run (mandatory)
   -g <GROUP> : group the vm is in (default : templates)
   -i <ISO_FILE> : name of an iso to mount from ${isoDir} (default : none)
   -G : launch the GUI (console window)
@@ -19,7 +19,7 @@ libName=cm_lib
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
 vmName=
-vmGroup=templates
+vmGroup=${vmCreateGroup}
 isoName=none
 guiMode=
 while getopts n:g:i:Gh name
@@ -46,5 +46,7 @@ done
 shift $(($OPTIND-1))
 
 [ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
+
+[ ${vmGroup} == ${vmCreateGroup} ] && chmod +w ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.img
 
 vm_run ${vmName} ${vmGroup} ${isoName} ${guiMode}

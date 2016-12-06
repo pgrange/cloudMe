@@ -1,0 +1,4 @@
+v produce a functional archlinux template
+v create a private host network as I use in virtualbox (https://wiki.archlinux.org/index.php/QEMU#Host-only_networking)
+> automatic add in know_hosts upon instanciation
+. reproduce different tools from virtualbox version using kvm

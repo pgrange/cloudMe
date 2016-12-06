@@ -23,6 +23,14 @@ vm_disk_create() {
   fi
 }
 
+vm_stop() {
+  local vmName=$1
+  local vmGroup=$2
+
+  subGroupDir="${vmBaseDir}/${groupName}"
+  pkill -f qemu-system-${vmSystemType} | sed -r ":file=${subGroupDir}/${vmName}/:!d"
+}
+
 vm_run() {
   local vmName=$1
   local vmGroup=$2
@@ -37,6 +45,9 @@ vm_run() {
 
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
 
+  net_up_cloudme
+
+  [ ${vmGroup} != ${vmCreateGroup} ] && vmMac=$(vm_mac ${vmName}) || vmMac="00:00:11:22:33:44"
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
@@ -48,7 +59,14 @@ vm_run() {
     -D "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log" \
     --daemonize \
     ${vmNoGui} \
+    -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface}
     >/dev/null 2>&1
+}
+
+vm_mac() {
+  vmName=$1
+
+  echo ${vmName} | sed -r 's/-//g;s/^(.{8}).*/0000\1/;s/(..)/\1:/g;s/:$//'
 }
 
 vm_create() {
@@ -79,3 +97,60 @@ vm_clone_disk() {
   qemu-img create -q -f qcow2 -b "${vmDisk}" "${vmDestDisk}" >/dev/null >&2
   echo "${vmDestDisk}"
 }
+
+vm_running() {
+  local groupName="$1"
+  local subGroupName="$2"
+
+  [ "${groupName}" == "*" ] && groupName='[^/]*'
+  [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
+  subGroupDir="${vmBaseDir}/${groupName}/${subGroupName}"
+  
+  for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | sed -r ":file=${subGroupDir}/:!d;s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
+  do
+    vmName=$(echo ${vmPath} | sed -r 's:.*/([^/]+)$:\1:')
+    vmGroup=$(echo ${vmPath} | sed -r "s:/${vmName}::")
+    vmMac=$(vm_mac ${vmName})
+    vmIP=$(grep " ${vmMac} " /var/lib/misc/dnsmasq.leases | cut -d " " -f 3)
+    echo ${vmName} ${vmGroup} ${vmIP}
+  done
+}
+
+net_up_cloudme() {
+  if [ ! -d /etc/qemu ] ; then
+    sudo mkdir /etc/qemu
+    sudo chown root:kvm /etc/qemu
+    sudo chmod 750 /etc/qemu
+  fi
+  if [ ! -f /etc/qemu/bridge.conf ] ; then
+    sudo touch /etc/qemu/bridge.conf
+    sudo chown root:kvm /etc/qemu/bridge.conf
+    sudo chmod 640 /etc/qemu/bridge.conf
+  fi
+  grep "allow all" /etc/qemu/bridge.conf >/dev/null 2>&1 || echo "allow all" | sudo tee --append /etc/qemu/bridge.conf >/dev/null
+
+  bridgeInterfaceUp=$(ip link | sed -r '/^[0-9]+:/!d;s/[0-9]+: ([^:]+):.*/\1/' | grep -c "^${bridgeInterface}$")
+  if [ ${bridgeInterfaceUp} -eq 0 ] ; then
+    sudo ip link add name ${bridgeInterface} type bridge
+    sudo ip link set ${bridgeInterface} up
+    sudo ip addr add ${bridgeAddress} dev ${bridgeInterface}
+    sudo iptables -I INPUT -i ${bridgeInterface} -j ACCEPT
+    sudo iptables -A fw-interfaces -i ${bridgeInterface} -j ACCEPT
+    sudo iptables -t nat -A POSTROUTING -s ${bridgeNet} -o ${netInterface} -j MASQUERADE
+    sudo sysctl -q net.bridge.bridge-nf-call-ip6tables=0
+    sudo sysctl -q net.bridge.bridge-nf-call-iptables=0
+    sudo sysctl -q net.bridge.bridge-nf-call-arptables=0
+    sudo dnsmasq --interface=bridge0 --bind-interfaces --dhcp-range=${bridgeDhcpStart},${bridgeDhcpStop}
+  fi
+}
+
+net_down_cloudme() {
+  sudo sysctl -q net.bridge.bridge-nf-call-ip6tables=1
+  sudo sysctl -q net.bridge.bridge-nf-call-iptables=1
+  sudo sysctl -q net.bridge.bridge-nf-call-arptables=1
+  sudo systemctl restart iptables
+  sudo killall dnsmasq
+  sudo ip link delete dev bridge0
+}
+
+
