@@ -32,7 +32,7 @@ groups=$(ls ${vmBaseDir} | grep -v "${vmCreateGroup}")
 echo ${groups} | tr ' ' '\n' | grep "^${vmGroup}$" >/dev/null || usage "${vmGroup} is no known group"
 
 subGroups=$(ls ${vmBaseDir}/${vmGroup})
-[ -z ${subGroups} ] && usage "no subGroup for group ${vmGroup}"
+[ -z "${subGroups}" ] && usage "no subGroup for group ${vmGroup}"
 if [ -n "${vmSubGroup}" ] ; then
   echo ${subGroups} | tr ' ' '\n' | grep "^${vmSubGroup}$" >/dev/null || usage "${vmSubGroup} is no known subgroup of ${vmGroup}"
   subGroups=${vmSubGroup}

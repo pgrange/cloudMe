@@ -38,6 +38,7 @@ vmTemplate=${vmName}
 vmTemplateGroup=${vmCreateGroup}
 . <(sed 's/^/tmplt_/' ${vmBaseDir}/${vmTemplateGroup}/${vmTemplate}/${vmTemplate}.conf)
 
+vmList=
 vmDir=${vmBaseDir}/${vmGroup}/${vmSubGroup}
 for vmNum in $(seq 1 ${vmCount})
 do
@@ -51,4 +52,12 @@ vmCpu=${tmplt_vmCpu}
 vmDisk=${vmDisk}
 EOF
   vm_run ${vmName} ${vmGroup}/${vmSubGroup} none
+  vmList="${vmList} ${vmName}"
 done
+
+for vmName in ${vmList}
+do
+  vm_ssh $(vm_ip ${vmName}) -o strictHostKeyChecking=false "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname ; reboot" >/dev/null 2>&1 &
+done
+
+wait

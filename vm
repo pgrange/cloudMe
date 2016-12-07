@@ -3,10 +3,11 @@
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -n <VM_NAME> [options]
-  -n <VM_NAME> : sets the name of the VM to run (mandatory)
+  -n <VM_NAME> : sets the name of the VM to connect to (mandatory)
   -g <GROUP> : group the vm is in (default : templates)
+  -t <TYPE> : restrict selection to this type
   -i <ISO_FILE> : name of an iso to mount from ${isoDir} (default : none)
-  -G : launch the GUI (console window)
+  -G : launch the GUI (console window) (default: no GUI)
   -h : display this help" >&2
   exit
 }
@@ -20,33 +21,34 @@ libName=cm_lib
 
 vmName=
 vmGroup=${vmCreateGroup}
+vmSubGroup=
 isoName=none
 guiMode=
-while getopts n:g:i:Gh name
+while getopts n:g:t:i:Gh name
 do
   case $name in
-    n)
-      vmName="$OPTARG"
-      ;;
-    g)
-      vmGroup="$OPTARG"
-      ;;
-    i)
-      isoName="$OPTARG"
-      [ -f ${isoDir}/${isoName} ] || usage "${isoDir}/${isoName} does not exists"
-      ;;
-    G)
-      guiMode="gui"
-      ;;
-    h)
-      usage
-      ;;
+    n) vmName="$OPTARG" ;;
+    g) vmGroup="$OPTARG" ;;
+    t) vmSubGroup="$OPTARG" ;;
+    i) isoName="$OPTARG" ;;
+    G) guiMode="gui" ;;
+    h) usage ;;
   esac
 done
 shift $(($OPTIND-1))
 
+[ "${isoName}" != "none" ] && [ ! -f ${isoDir}/${isoName} ] && usage "${isoDir}/${isoName} does not exists"
 [ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
+[ -n "${vmSubGroup}" ] && vmGroupType=${vmGroup}/${vmSubGroup} || vmGroupType=${vmGroup}
+[ -d ${vmBaseDir}/${vmGroupType}/${vmName} ] || usage "no such VM in group ${vmGroupType}"
 
-[ ${vmGroup} == ${vmCreateGroup} ] && chmod +w ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.img
+#[ ${vmGroup} == ${vmCreateGroup} ] && chmod +w ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.img
 
-vm_run ${vmName} ${vmGroup} ${isoName} ${guiMode}
+vmIsRunning=$(is_vm_running ${vmName})
+[ ${vmIsRunning} -eq 1 -a "${guiMode}" == "gui" ] && usage "Machine is already running headless. Can't connect to console."
+[ ${vmIsRunning} -eq 0 ] && vm_run ${vmName} ${vmGroupType} ${isoName} ${guiMode}
+
+if [ "${guiMode}" != "gui" ] ; then
+  vmIp=$(vm_ip ${vmName}) || usage "machine did not get an IP within time"
+  vm_ssh ${vmIp} $@
+fi

@@ -12,10 +12,10 @@ it is :
 
 it is not :
 
-- ment to be a usable cloud platform
+- ment to be a production cloud platform
 - bug free
 
-I therefore only have tested with Archlinux hosts and guests. And this is what will be use next as examples. Examples will be simple. Multiple options are available and are documented through the -h option of the scripts.
+I therefore only have tested with Archlinux hosts. Debian and Archlinux guests were tested. And this is what will be use next as examples. Examples will be simple. Multiple options are available and are documented through the -h option of each script.
 
 Cloud initialization and template managment
 ===========================================
