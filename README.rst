@@ -2,6 +2,19 @@
 cloudMe
 =======
 
+TL;DR
+=====
+
+cloudMe is a set of tools to run a mini-cloud on your machine based on kvm / qemu and written in bash.
+
+To create a template and instanciate 5 times this template ::
+
+ vmcreate -n debian8 -i debian-8.6.0-amd64-netinst.iso
+ vminstanciate -n debian8 -C 5
+
+Presentation
+============
+
 cloudMe is a cheap solution to own your cloud. It was first developped as a side project to provide the tools I needed for my virtualbox usage. I switched to kvm backend but keeping in mind the possibility to offer multiple backends.
 
 it is :
@@ -24,7 +37,7 @@ Everything starts with a template.
 
 You first need to have an ISO of the system you want to install (ex: archlinux.iso). You then create a VM using this ISO ::
 
- ./vmCreate -n archlinux -i archlinux.iso
+ ./vmcreate -n archlinux -i archlinux.iso
 
 Once the machine created, it will start and you will have to make your template corresponding to the following standards :
 
@@ -42,22 +55,38 @@ Clone generation
 
 Once your template is good, you can use it to generate new VMs ::
 
- ./vmInstanciate -n archlinux -C 2
+ ./vminstanciate -n archlinux -C 2
 
 will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
 
 Tools
 =====
 
-vmCreate - VM creation
+
+vm - run and connect to a VM
+----------------------------
+
+
+
+vmcreate - VM creation
 ----------------------
 
 
 
-vm - running a VM
------------------
-
-
-
-vmInstanciate - making clones
+vminstanciate - making clones
 -----------------------------
+
+
+
+vmlaunch - run all the VMs of a group
+-------------------------------------
+
+
+
+vmrunning - list all the running guests on the host
+---------------------------------------------------
+
+
+
+vmstop - stop a group of VMs
+----------------------------

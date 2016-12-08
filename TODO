@@ -1,4 +1,8 @@
-v produce a functional archlinux template
-v create a private host network as I use in virtualbox (https://wiki.archlinux.org/index.php/QEMU#Host-only_networking)
-> automatic add in know_hosts upon instanciation
-. reproduce different tools from virtualbox version using kvm
+vvv produce a functional archlinux template
+vvv create a private host network as I use in virtualbox (https://wiki.archlinux.org/index.php/QEMU#Host-only_networking)
+... automatic add in know_hosts upon instanciation
+>>> get sudo out of network conf
+... project on github and templates on https://git-lfs.github.com/
+... option to download latest iso for a distrib
+... improve doc
+... have an installer and don't type ./ for each command
