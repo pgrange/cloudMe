@@ -14,7 +14,7 @@ usage() {
 
 realMe=$(readlink -e $0)
 realDir=$(dirname ${realMe})
-libDir=lib
+libDir=../lib
 libName=cm_lib
 [ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
