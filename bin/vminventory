@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) [ --list | -h ]
+  this tool is intended to be used as inventory by ansible-playbook
+  to restrict to a group or a group / type, GROUP and TYPE variables must be set
+  --list : outputs json inventory
+  -h : display this help
+  ">&2
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+[ -z ${GROUP} ] && groupName="*" || groupName=${GROUP}
+[ -z ${TYPE} ] && subGroupName="*" || subGroupName=${TYPE}
+[ "$1" == "-h" ] && usage
+
+[ "${groupName}" == "${vmCreateGroup}" ] && usage "can't get inventory for ${vmCreateGroup}"
+
+if [ "$1" == "--list" ] ; then
+
+  echo "{"
+  previous_group=
+  previous_type=
+  children=
+  hosts=
+
+  for line in $(vm_running "${groupName}" "${subGroupName}" | sort -k 2 | tr " " "/")
+  do
+
+    host=$(echo "$line" | cut -d "/" -f 1)
+    group=$(echo "$line" | cut -d "/" -f 2)
+    type=$(echo "$line" | cut -d "/" -f 3)
+    ip=$(echo "$line" | cut -d "/" -f 4)
+
+    type_change=0
+
+    if [ "${previous_type}" != "${type}" ] ; then
+      if [ -n "${previous_type}" ] ; then
+        echo "      \"hosts\" : [ ${hosts} ],"
+        echo "    }"
+        hosts=""
+      fi
+      previous_type=${type}
+      type_change=1
+    fi
+
+    #current_hosts="${current_hosts} ${host}"
+    hosts="${hosts} \"${ip}\","
+
+    if [ "${previous_group}" != "${group}" ] ; then
+      if [ -n "${previous_group}" ] ; then
+        children=$(echo ${children} | tr ' ' '\n' | sort | uniq | xargs echo)
+        echo "    \"children\" : [ ${children} ],"
+        echo "  },"
+        children=""
+      fi
+      previous_group=${group}
+      echo "  \"${group}\" : {"
+    fi
+
+    children="${children} \"${type}\"," 
+
+    if [ ${type_change} -eq 1 ] ; then
+      echo "    \"${type}\" : {"
+    fi
+
+  done
+
+  if [ -n "${previous_type}" ] ; then
+    echo "      \"hosts\" : [ ${hosts} ],"
+    echo "    }"
+  fi
+
+  if [ -n "${previous_group}" ] ; then
+    children=$(echo ${children} | tr ' ' '\n' | sort | uniq | xargs echo)
+    echo "    \"children\" : [ ${children} ],"
+    echo "  }"
+  fi
+
+  echo "}"
+
+fi
