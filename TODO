@@ -6,3 +6,5 @@ vvv create a private host network as I use in virtualbox (https://wiki.archlinux
 ... option to download latest iso for a distrib
 ... improve doc
 ... have an installer and don't type ./ for each command
+
+!!! vminventory : GROUP and TYPE are not restricting anything
