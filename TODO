@@ -1,10 +1,23 @@
-vvv produce a functional archlinux template
-vvv create a private host network as I use in virtualbox (https://wiki.archlinux.org/index.php/QEMU#Host-only_networking)
-... automatic add in know_hosts upon instanciation
->>> get sudo out of network conf
-... project on github and templates on https://git-lfs.github.com/
-... option to download latest iso for a distrib
-... improve doc
-... have an installer and don't type ./ for each command
+TODO list
 
-!!! vminventory : GROUP and TYPE are not restricting anything
+symbols explained :
+v = done
+. = to do
+> = in progress
+! = bug
+
+new ideas are added on top of the list 
+
+!!! bug vminventory : GROUP and TYPE are not restricting anything
+vvv bug vmstop : stops everything (but only drops what it is asked to)
+... have an installer and don't type bin/ for each command
+... improve doc
+... option to download latest iso for a distrib
+... project on github and templates on https://git-lfs.github.com/
+vvv get sudo out of network conf
+... automatic add in know_hosts upon instanciation
+... have name resolution
+vvv instantiation from file
+vvv instantiation becomes a lib function
+vvv create a private host network as I use in virtualbox (https://wiki.archlinux.org/index.php/QEMU#Host-only_networking)
+vvv produce a functional archlinux template
