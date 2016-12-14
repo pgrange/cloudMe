@@ -36,10 +36,14 @@ shift $(($OPTIND-1))
 
 vm_running "${groupName}" "${subGroupName}" | while read vmName vmGroup vmIp
 do
-  vm_stop ${vmName} ${vmGroup}
+  vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
+  vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
+  vm_stop ${vmName} ${vmGroup} ${vmSubGroup}
 done
 
 if [ $destroy -eq 1 ] ; then
   rm ${vmBaseDir}/${groupName}/${subGroupName}/*/*
   rmdir ${vmBaseDir}/${groupName}/${subGroupName}/*
+  rmdir ${vmBaseDir}/${groupName}/${subGroupName} 2>/dev/null
+  rmdir ${vmBaseDir}/${groupName}/ 2>/dev/null
 fi

@@ -26,9 +26,10 @@ vm_disk_create() {
 vm_stop() {
   local vmName=$1
   local vmGroup=$2
+  local vmSubGroup=$3
 
-  subGroupDir="${vmBaseDir}/${groupName}"
-  pkill -f qemu-system-${vmSystemType} | sed -r ":file=${subGroupDir}/${vmName}/:!d"
+  vmDir="${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/"
+  pgrep -f qemu-system-${vmSystemType} -a | grep "file=${vmDir}" | cut -d " " -f 1 | xargs kill
 }
 
 vm_run() {
@@ -104,7 +105,7 @@ vm_running() {
   [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
   subGroupDir="${vmBaseDir}/${groupName}/${subGroupName}"
   
-  for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | sed -r ":file=${subGroupDir}/:!d;s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
+  for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${subGroupDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
   do
     vmName=$(echo ${vmPath} | sed -r 's:.*/([^/]+)$:\1:')
     vmGroup=$(echo ${vmPath} | sed -r "s:/${vmName}::")
