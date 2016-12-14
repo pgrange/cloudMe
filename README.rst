@@ -10,7 +10,7 @@ cloudMe is a set of tools to run a mini-cloud on your machine based on kvm / qem
 To create a template and instanciate 5 times this template ::
 
  vmcreate -n debian8 -i debian-8.6.0-amd64-netinst.iso
- vminstanciate -n debian8 -C 5
+ vminstantiate -n debian8 -C 5
 
 Presentation
 ============
@@ -73,7 +73,7 @@ vmcreate - VM creation
 
 
 
-vminstanciate - making clones
+vminstantiate - making clones
 -----------------------------
 
 

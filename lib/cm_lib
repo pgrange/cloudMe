@@ -10,8 +10,10 @@ vmCreateGroup="templates"
 vmCreateDiskSize=10
 
 vmCount=1
-vmGroup="group"
-vmSubGroup="default"
+vmDefaultGroup="group"
+vmDefaultSubGroup="default"
+vmGroup=${vmDefaultGroup}
+vmSubGroup=${vmDefaultSubGroup}
 
 isoDir="$HOME/Documents/distribs/linux"
 

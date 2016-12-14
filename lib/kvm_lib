@@ -116,6 +116,48 @@ vm_running() {
   done
 }
 
+vm_instantiate() {
+  local vmTemplate=$1
+  local vmCount=$2
+  local vmGroup=$3
+  local vmSubGroup=$4
+
+  [ -z ${vmGroup} ] && vmGroup=${vmDefaultGroup}
+  [ -z ${vmSubGroup} ] && vmSubGroup=${vmDefaultSubGroup}
+
+  local vmTemplateGroup=${vmCreateGroup}
+  . <(sed 's/^/tmplt_/' ${vmBaseDir}/${vmTemplateGroup}/${vmTemplate}/${vmTemplate}.conf)
+
+  local vmList=
+  local vmDir=${vmBaseDir}/${vmGroup}/${vmSubGroup}
+  for vmNum in $(seq 1 ${vmCount})
+  do
+    local vmName=$(uuidgen)
+    [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
+    local vmDisk=$(vm_clone_disk ${vmTemplateGroup} ${vmTemplate} ${vmGroup}/${vmSubGroup} ${vmName})
+    cat > ${vmDir}/${vmName}/${vmName}.conf <<EOF
+vmName=${vmName}
+vmMem=${tmplt_vmMem}
+vmCpu=${tmplt_vmCpu}
+vmDisk=${vmDisk}
+EOF
+    vm_run ${vmName} ${vmGroup}/${vmSubGroup} none
+    vmList="${vmList} ${vmName}"
+  done
+
+  for vmName in ${vmList}
+  do
+    vm_ssh $(vm_ip ${vmName}) -o strictHostKeyChecking=false "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname ; reboot" >/dev/null 2>&1 &
+  done
+
+  #wait
+
+  for vmName in $vmList
+  do
+    echo ${vmName}
+  done
+}
+
 is_vm_running() {
   local vmName=$1
 
