@@ -45,8 +45,6 @@ vm_run() {
 
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
 
-  net_up_cloudme
-
   [ ${vmGroup} != ${vmCreateGroup} ] && vmMac=$(vm_mac ${vmName}) || vmMac="00:00:11:22:33:44"
   qemu-system-${vmSystemType} \
     -enable-kvm \
@@ -197,42 +195,3 @@ vm_ip() {
   [ ${ipFindingIteration} -gt ${ipFindingIterationMax} ] && return 1
   echo $vmIp
 }
-
-net_up_cloudme() {
-  if [ ! -d /etc/qemu ] ; then
-    sudo mkdir /etc/qemu
-    sudo chown root:kvm /etc/qemu
-    sudo chmod 750 /etc/qemu
-  fi
-  if [ ! -f /etc/qemu/bridge.conf ] ; then
-    sudo touch /etc/qemu/bridge.conf
-    sudo chown root:kvm /etc/qemu/bridge.conf
-    sudo chmod 640 /etc/qemu/bridge.conf
-  fi
-  grep "allow all" /etc/qemu/bridge.conf >/dev/null 2>&1 || echo "allow all" | sudo tee --append /etc/qemu/bridge.conf >/dev/null
-
-  bridgeInterfaceUp=$(ip link | sed -r '/^[0-9]+:/!d;s/[0-9]+: ([^:]+):.*/\1/' | grep -c "^${bridgeInterface}$")
-  if [ ${bridgeInterfaceUp} -eq 0 ] ; then
-    sudo ip link add name ${bridgeInterface} type bridge
-    sudo ip link set ${bridgeInterface} up
-    sudo ip addr add ${bridgeAddress} dev ${bridgeInterface}
-    sudo iptables -I INPUT -i ${bridgeInterface} -j ACCEPT
-    sudo iptables -A fw-interfaces -i ${bridgeInterface} -j ACCEPT
-    sudo iptables -t nat -A POSTROUTING -s ${bridgeNet} -o ${netInterface} -j MASQUERADE
-    sudo sysctl -q net.bridge.bridge-nf-call-ip6tables=0
-    sudo sysctl -q net.bridge.bridge-nf-call-iptables=0
-    sudo sysctl -q net.bridge.bridge-nf-call-arptables=0
-    sudo dnsmasq --interface=bridge0 --bind-interfaces --dhcp-range=${bridgeDhcpStart},${bridgeDhcpStop}
-  fi
-}
-
-net_down_cloudme() {
-  sudo sysctl -q net.bridge.bridge-nf-call-ip6tables=1
-  sudo sysctl -q net.bridge.bridge-nf-call-iptables=1
-  sudo sysctl -q net.bridge.bridge-nf-call-arptables=1
-  sudo systemctl restart iptables
-  sudo killall dnsmasq
-  sudo ip link delete dev bridge0
-}
-
-

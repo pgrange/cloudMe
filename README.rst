@@ -30,6 +30,57 @@ it is not :
 
 I therefore only have tested with Archlinux hosts. Debian and Archlinux guests were tested. And this is what will be use next as examples. Examples will be simple. Multiple options are available and are documented through the -h option of each script.
 
+System pre-requisites
+=====================
+
+Network pre-requisites
+======================
+
+The solution is based on bridging capability. Setup needs root access and I want to reduce sudo commands through the tools at its minimum. Needs are explained below.
+
+If you want to keep it simple, a basic configuration can be done using the script cmnet (eun as root) from sbin directory ::
+
+ sudo sbin/cmnet start
+ sudo sbin/cmnet stop
+
+It brings the bridge0 interface up and launches dnsmasq.
+
+Qemu configuration
+------------------
+
+The file /etc/qemu/bridge.conf determines which bridge interface QEMU is allowed to use. To simplify, we will allow all (You can be more restrictive if needed). Configuration is done, running this commands as root ::
+
+ mkdir -p /etc/qemu
+ echo "allow all" >> /etc/qemu/bridge.conf
+ chown -R root:kvm /etc/qemu
+ chmod 750 /etc/qemu
+ chmod 640 /etc/qemu/bridge.conf
+
+Bridge interface
+----------------
+
+At least on bridge interface must exist on your system. For the default configuration, this is done with the following commands ::
+
+ ip link add name bridge0 type bridge
+ ip link set bridge0 up
+ ip addr add 192.168.1.1/24 dev bridge0
+
+If you, as I do, use iptables on your machine, this new interface must be configured in order to access read network through the host ::
+
+ sysctl -q net.ipv4.conf.all.forwarding=1
+ iptables -I INPUT -i bridge0 -j ACCEPT
+ iptables -N fw-interfaces
+ iptables -A FORWARD -j fw-interfaces
+ iptables -A fw-interfaces -i bridge0 -j ACCEPT
+ iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o bond0 -j MASQUERADE
+
+dnsmasq
+-------
+
+Finaly, to configure network easily on the machines, we use dnsmasq ::
+
+ dnsmasq --interface=bridge0 --bind-interfaces --dhcp-range=192.168.1.2,192.168.1.254
+
 Cloud initialization and template managment
 ===========================================
 
@@ -53,11 +104,33 @@ Note that vmCreate can also be used to adjust VM configuration (using -a switch)
 Clone generation
 ================
 
+Manual
+------
+
 Once your template is good, you can use it to generate new VMs ::
 
- ./vminstanciate -n archlinux -C 2
+ ./vminstantiate -n archlinux -C 2
 
 will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
+
+Using description file
+----------------------
+
+If you want to automate the creation of a set of VMs, you can create description files. Each line matches a vminstantiate command line parameters. Those are separated by ":" and are in the following order :
+
+- template name
+- number of clones
+- group name
+- type name
+
+For instance the following file produces 2 VMs of type web and 1 VM of type sql in the group pf1 ::
+
+ archlinux:2:pf1:web
+ archlinux:1:pf1:sql
+
+The file (named pftest) is called with the following command ::
+
+ vminstantiate -f pftest
 
 Tools
 =====

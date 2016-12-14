@@ -24,6 +24,11 @@ bridgeNet=192.168.1.0/24
 bridgeDhcpStart=192.168.1.2
 bridgeDhcpStop=192.168.1.254
 
+[ -z ${realDir} ] && realDir=$(dirname $0)
+[ -z ${libDir} ] && libDir=../lib
+
+[ -f ${realDir}/${libDir}/net_conf ] && . ${realDir}/${libDir}/net_conf
+
 # for now, can be : kvm (virtualbox planned)
 vmBackend=kvm
 . ${realDir}/${libDir}/${vmBackend}_lib
@@ -34,6 +39,25 @@ nonNumeric() {
   noNum=$(echo "$@" | sed "s/[^0-9]//g")
   [ "$noNum " != "$@ " ] && echo 1 || echo 0
 }
+
+error() {
+  echo "$@" >&2
+  exit 1
+}
+
+cm_check() {
+  local bridgeInterface=$1
+
+  # Testing pre-requisites
+  [ -d /etc/qemu ] || error "/etc/qemu does not exist. Please read documentation."
+  [ -f /etc/qemu/bridge.conf ] || "/etc/qemu/bridge.conf does not exist. Please read documentation."
+  grep "^allow " /etc/qemu/bridge.conf >/dev/null 2>&1 || error "no bridging allowed for qemu. Please read documentation."
+
+  local bridgeInterfaceUp=$(ip link | sed -r '/^[0-9]+:/!d;s/[0-9]+: ([^:]+):.*/\1/' | grep -c "^${bridgeInterface}$")
+  [ ${bridgeInterfaceUp} -eq 0 ] && error "${bridgeInterface} bridge interface is not available. Please read documentation."
+}
+
+cm_check ${bridgeInterface}
 
 # ConfFile search and source
 confFile=.cloudMe.conf

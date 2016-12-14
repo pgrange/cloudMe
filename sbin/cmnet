@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd "$(dirname $0)/.."
+
+. lib/net_conf
+
+if [ "$1" == "start" ] ; then
+  ip link add name ${bridgeInterface} type bridge
+  ip link set ${bridgeInterface} up
+  ip addr add ${bridgeAddress} dev ${bridgeInterface}
+  sleep 1
+  dnsmasq --interface=${bridgeInterface} --bind-interfaces --dhcp-range=${bridgeDhcpStart},${bridgeDhcpStop}
+fi
+
+if [ "$1" == "stop" ] ; then
+  kill $(cat /var/run/dnsmasq.pid)
+  ip link delete ${bridgeInterface}
+fi

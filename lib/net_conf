@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+netInterface=bond0
+bridgeInterface=bridge0
+bridgeAddress=192.168.1.1/24
+bridgeNet=192.168.1.0/24
+bridgeDhcpStart=192.168.1.2
+bridgeDhcpStop=192.168.1.254
