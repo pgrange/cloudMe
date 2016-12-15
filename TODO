@@ -10,8 +10,8 @@ new ideas are added on top of the list
 
 !!! bug vminventory : GROUP and TYPE are not restricting anything
 vvv bug vmstop : stops everything (but only drops what it is asked to)
-... have an installer and don't type bin/ for each command
-... improve doc
+vvv have an installer and don't type bin/ for each command
+>>> improve doc
 ... option to download latest iso for a distrib
 ... project on github and templates on https://git-lfs.github.com/
 vvv get sudo out of network conf

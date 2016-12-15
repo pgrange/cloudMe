@@ -33,6 +33,12 @@ I therefore only have tested with Archlinux hosts. Debian and Archlinux guests w
 System pre-requisites
 =====================
 
+Following things needs to be installed on your machine :
+
+- qemu
+- dnsmasq
+- make
+
 Network pre-requisites
 ======================
 
@@ -80,6 +86,13 @@ dnsmasq
 Finaly, to configure network easily on the machines, we use dnsmasq ::
 
  dnsmasq --interface=bridge0 --bind-interfaces --dhcp-range=192.168.1.2,192.168.1.254
+
+Installation
+============
+
+Only thing to do is ::
+
+ sudo make
 
 Cloud initialization and template managment
 ===========================================
