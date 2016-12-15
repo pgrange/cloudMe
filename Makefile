@@ -10,15 +10,15 @@ LIB= $(wildcard lib/*)
 SINSTALL_OPTS=-o root -g kvm -m 0755
 SBIN= $(wildcard sbin/*)
 
-#.PHONY: all $(BIN) $(LIB) $(SBIN)
+.PHONY: all $(BIN) $(LIB) $(SBIN)
 
 all: $(BIN) $(LIB) $(SBIN)
 
 $(BIN):
-	@$(INSTALL) $(INSTALL_OPTS) $@ $(PREFIX)/$@
+	$(INSTALL) $(INSTALL_OPTS) $@ $(PREFIX)/$@
 
 $(LIB):
-	@$(INSTALL) $(LINSTALL_OPTS) $@ $(PREFIX)/$@
+	$(INSTALL) $(LINSTALL_OPTS) $@ $(PREFIX)/$@
 
 $(SBIN):
-	@$(INSTALL) $(SINSTALL_OPTS) $@ $(PREFIX)/$@
+	$(INSTALL) $(SINSTALL_OPTS) $@ $(PREFIX)/$@
