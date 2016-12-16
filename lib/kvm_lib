@@ -115,6 +115,17 @@ vm_running() {
   done
 }
 
+vm_configure() {
+  local vmName=$1
+
+  local vmIp=$(vm_ip ${vmName})
+  vm_ssh ${vmIp} "cat /etc/ssh/ssh_host_ecdsa_key.pub" | cut -d " " -f 2 >&2
+  local vmKey=$(vm_ssh ${vmIp} "cat /etc/ssh/ssh_host_ecdsa_key.pub" | cut -d " " -f 2)
+  sed -i "/^${vmIp} /d" ~/.ssh/known_hosts
+  echo "${vmIp} ecdsa-sha2-nistp256 ${vmKey}" >> ~/.ssh/known_hosts
+  vm_ssh ${vmIp} "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname ; reboot"
+}
+
 vm_instantiate() {
   local vmTemplate=$1
   local vmCount=$2
@@ -146,7 +157,7 @@ EOF
 
   for vmName in ${vmList}
   do
-    vm_ssh $(vm_ip ${vmName}) -o strictHostKeyChecking=false "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname ; reboot" >/dev/null 2>&1 &
+    vm_configure ${vmName} >/dev/null 2>&1 &
   done
 
   #wait
@@ -190,7 +201,7 @@ vm_ip() {
   ipFindingIterationMax=30
   while [ ${ipFindingIteration} -le ${ipFindingIterationMax} ]
   do
-    vmIp=$(vm_running | grep ^${vmName} | cut -d ' ' -f 3)
+    vmIp=$(vm_running "*" "*" | grep ^${vmName} | cut -d ' ' -f 3)
     [ -n "${vmIp}" ] && break
     sleep 1
     ipFindingIteration=$((${ipFindingIteration}+1))
