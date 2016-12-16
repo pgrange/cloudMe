@@ -48,7 +48,7 @@ if [ "$1" == "--list" ] ; then
       if [ -n "${previous_type}" ] ; then
         echo "  \"${previous_group}_${previous_type}\" : {"
         echo "    \"hosts\" : [ ${hosts} ],"
-        echo "  }"
+        echo "  },"
         hosts=""
       fi
       previous_type=${type}
@@ -66,14 +66,14 @@ if [ "$1" == "--list" ] ; then
     fi
 
     hosts="${hosts} \"${ip}\","
-    children="${children} \"${group}_${type}\"," 
+    children="${children} \\\"${group}_${type}\\\"," 
 
   done
 
   if [ -n "${type}" ] ; then
     echo "  \"${group}_${type}\" : {"
     echo "    \"hosts\" : [ ${hosts} ],"
-    echo "  }"
+    echo "  },"
   fi
 
   if [ -n "${group}" ] ; then
