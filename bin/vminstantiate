@@ -40,16 +40,17 @@ if [ -z ${groupConfFile} ] ; then
   [ $(nonNumeric ${vmCount}) -eq 1 ] && usage "-c needs numeric argument"
   [ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
   groupConfFile=$(mktemp)
-  echo "${vmName}:${vmCount}:${vmGroup}:${vmSubGroup}" > ${groupConfFile}
+  echo "${vmName}:${vmCount}:${vmSubGroup}" > ${groupConfFile}
   tempConf=1
+else
+  vmGroup=$(basename "${groupConfFile}" | sed 's/\.[^\.]*$//')
 fi
 
 for confLine in $(cat ${groupConfFile})
 do
   vmName=$(echo "${confLine}" | cut -d : -f 1)
   vmCount=$(echo "${confLine}" | cut -d : -f 2)
-  vmGroup=$(echo "${confLine}" | cut -d : -f 3)
-  vmSubGroup=$(echo "${confLine}" | cut -d : -f 4)
+  vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
   vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup}
 done
 

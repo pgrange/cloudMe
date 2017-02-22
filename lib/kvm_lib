@@ -209,3 +209,15 @@ vm_ip() {
   [ ${ipFindingIteration} -gt ${ipFindingIterationMax} ] && return 1
   echo $vmIp
 }
+
+vm_group() {
+  local vmName=$1
+
+  vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 1
+}
+
+vm_type() {
+  local vmName=$1
+
+  vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 2
+}

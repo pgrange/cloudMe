@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) -f <FILE>
+  -f <FILE> : instanciate servers based on a configuration file. View documentation for file format.
+  -h : display this help" >&2
+  exit
+}
+
+stop_all() {
+  log "I am being told to shut down."
+  vms=$(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1 | xargs)
+  log "My vms are currently : "
+  for vm in ${vms} ; do
+    log " - ${vm}"
+  done
+  for vm in ${vms} ; do
+    log "shutting down ${vm}"
+    vm_stop ${vm} ${vmGroup} $(vm_type ${vm})
+  done
+  log "Good bye !"
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+vmName=
+while getopts f:h name
+do
+  case $name in
+    f) groupConfFile="$OPTARG" ;;
+    h) usage ;;
+  esac
+done
+shift $(($OPTIND-1))
+
+[ -z ${groupConfFile} ] && usage "-f is mandatory"
+
+vmGroup=$(basename "${groupConfFile}" | sed 's/\.[^\.]*$//')
+log "I will be managing the ${vmGroup} group"
+
+vms=$(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1 | xargs)
+if [ -n "${vms}" ] ; then
+  log "${vmGroup} is not empty !"
+  for vm in ${vms} ; do
+    log "${vm} is of $(vm_type ${vm}) type in $(vm_group ${vm}) group"
+  done
+fi
+
+trap 'stop_all' SIGINT SIGTERM
+
+for confLine in $(cat ${groupConfFile}) ; do
+  vmName=$(echo "${confLine}" | cut -d : -f 1)
+  vmCount=$(echo "${confLine}" | cut -d : -f 2)
+  vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
+  vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup})
+  for vm in $(echo "${vmSpawned}" | tr -s '\n ' '  ') ; do
+    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
+    vms="${vms} ${vm}"
+  done
+done
+
+vmsWithoutIp=${vms}
+while [ -n "${vms}" ] ; do
+  if [ -n "${vmsWithoutIp}" ] ; then
+    for vmWithoutIp in ${vmsWithoutIp} ; do
+      ip=$(vm_running "${vmGroup}" "*" | grep ${vmWithoutIp} | cut -d ' ' -f 3 )
+      if [ -n "${ip}" ] ; then
+        log "${vmWithoutIp} has IP ${ip}"
+        vmsWithoutIp=$(echo "${vmsWithoutIp}" | sed "s/ *${vmWithoutIp} */ /" | sed -r 's/^ *(.*) *$/\1/')
+      fi
+    done
+  fi
+  for vm in ${vms} ; do
+    if [ -z "$(vm_running "${vmGroup}" "*" | grep ${vm})" ] ; then
+      log "${vm} has vanished..."
+      vms=$(echo "${vms}" | sed "s/ *${vm} */ /;s/^ *//;s/ *$//")
+    fi
+  done
+  for vm in $(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1) ; do
+    if [ $(echo "${vms}" | tr -s ' ' '\n' | grep ${vm} | wc -l) -eq 0 ] ; then
+      log "${vm} has joined the group from outer space."
+      vms="${vms} ${vm}"
+      vmsWithoutIp="${vmsWithoutIp} ${vm}"
+    fi
+  done
+  sleep 1
+done
+
+log "All of my machines have gone."
+log "I quit."

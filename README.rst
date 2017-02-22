@@ -137,17 +137,20 @@ If you want to automate the creation of a set of VMs, you can create description
 
 - template name
 - number of clones
-- group name
 - type name
 
-For instance the following file produces 2 VMs of type web and 1 VM of type sql in the group pf1 ::
+The group of the machines will be deduced from the file name.
 
- archlinux:2:pf1:web
- archlinux:1:pf1:sql
+For instance the following file produces 2 VMs of type web and 1 VM of type sql ::
+
+ archlinux:2:web
+ archlinux:1:sql
 
 The file (named pftest) is called with the following command ::
 
  vminstantiate -f pftest
+
+And so the machines will be in the pftest group.
 
 Tools
 =====
