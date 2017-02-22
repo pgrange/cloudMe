@@ -19,6 +19,8 @@ stop_all() {
     log "shutting down ${vm}"
     vm_stop ${vm} ${vmGroup} $(vm_type ${vm})
   done
+  log "removing files"
+  rm -r ${vmBaseDir}/${vmGroup}
   log "Good bye !"
   exit
 }
