@@ -138,9 +138,20 @@ vm_instantiate() {
   local vmCount=$2
   local vmGroup=$3
   local vmSubGroup=$4
+  local vmOpts=$5
 
   [ -z ${vmGroup} ] && vmGroup=${vmDefaultGroup}
   [ -z ${vmSubGroup} ] && vmSubGroup=${vmDefaultSubGroup}
+
+  local memOpt=${tmplt_vmMem}
+  local cpuOpt=${tmplt_vmCpu}
+  if [ -n "${vmOpts}" ] ; then
+    for vmOpt in ${vmOpts}
+    do
+      echo ${vmOpt} | grep ^mem= >/dev/null 2>&1 && memOpt=$(echo $vmOpt | sed 's/^mem=//')
+      echo ${vmOpt} | grep ^cpu= >/dev/null 2>&1 && cpuOpt=$(echo $vmOpt | sed 's/^cpu=//')
+    done  
+  fi
 
   local vmTemplateGroup=${vmCreateGroup}
   . <(sed 's/^/tmplt_/' ${vmBaseDir}/${vmTemplateGroup}/${vmTemplate}/${vmTemplate}.conf)
@@ -152,10 +163,12 @@ vm_instantiate() {
     local vmName=$(uuidgen)
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
     local vmDisk=$(vm_clone_disk ${vmTemplateGroup} ${vmTemplate} ${vmGroup}/${vmSubGroup} ${vmName})
+    [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
+    [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
     cat > ${vmDir}/${vmName}/${vmName}.conf <<EOF
 vmName=${vmName}
-vmMem=${tmplt_vmMem}
-vmCpu=${tmplt_vmCpu}
+vmMem=${memOpt}
+vmCpu=${cpuOpt}
 vmDisk=${vmDisk}
 EOF
     vm_run ${vmName} ${vmGroup}/${vmSubGroup} none

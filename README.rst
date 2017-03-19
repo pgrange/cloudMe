@@ -150,6 +150,11 @@ For instance the following file produces 2 VMs of type web and 1 VM of type sql 
  archlinux:2:web
  archlinux:1:sql
 
+You can specify cpu and memory for each line using the following syntax ::
+
+ archlinux:1:sql:mem=1024 cpu=4
+ archlinux:2:wab:mem=512
+
 The file (named pftest) is called with the following command ::
 
  vminstantiate -f pftest

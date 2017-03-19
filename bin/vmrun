@@ -61,7 +61,8 @@ for confLine in $(cat ${groupConfFile}) ; do
   vmName=$(echo "${confLine}" | cut -d : -f 1)
   vmCount=$(echo "${confLine}" | cut -d : -f 2)
   vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
-  vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup})
+  vmOpts=$(echo "${confLine}" | cut -d : -f 4 | tr ";" " ")
+  vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup} "${vmOpts}")
   for vm in $(echo "${vmSpawned}" | tr -s '\n ' '  ') ; do
     log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
     vms="${vms} ${vm}"
