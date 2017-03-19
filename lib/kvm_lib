@@ -44,12 +44,19 @@ vm_run() {
   local vmNoGui="-display sdl -no-quit"
   [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
+  local memOpt=""
+  local hugePageSize=$(grep "^Hugepagesize:" /proc/meminfo | tr -s " " " " | cut -d " " -f 2)
+  local hugePageFree=$(grep "^HugePages_Free:" /proc/meminfo | tr -s " " " " | cut -d " " -f 2)
+  hugePageFree=$((hugePageFree*hugePageSize/1024))
+
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
+  [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
   [ ${vmGroup} != ${vmCreateGroup} ] && vmMac=$(vm_mac ${vmName}) || vmMac="00:00:11:22:33:44"
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
+    ${memOpt} \
     -boot order=d \
     -drive file="${vmDisk}",format=qcow2 \
     -smp cpus=1,cores=${vmCpu},maxcpus=${vmCpu} \
