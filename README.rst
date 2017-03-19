@@ -41,7 +41,11 @@ Following things needs to be installed on your machine :
 
 kvm_intel module must be passed an option. This can be done with the following ::
 
- sudo echo options kvm_intel nested=1 > /etc/modprobe.d/kvm.conf
+ echo options kvm_intel nested=1 | sudo tee /etc/modprobe.d/kvm.conf
+
+also, in order to improve networking performance, load the vhost_net module ::
+
+ echo vhost_net | sudo tee /etc/modules-load.d/kvm.conf
 
 Network pre-requisites
 ======================
