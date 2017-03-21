@@ -49,6 +49,8 @@ vm_run() {
   local hugePageFree=$(grep "^HugePages_Free:" /proc/meminfo | tr -s " " " " | cut -d " " -f 2)
   hugePageFree=$((hugePageFree*hugePageSize/1024))
 
+  local maxCpu=$(LC_ALL=C lscpu | grep ^CPU\(s\) | tr -s " " " " | cut -d " " -f 2)
+
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
@@ -59,7 +61,7 @@ vm_run() {
     ${memOpt} \
     -boot order=d \
     -drive file="${vmDisk}",format=qcow2 \
-    -smp cpus=1,cores=${vmCpu},maxcpus=${vmCpu} \
+    -smp cpus=${vmCpu},cores=1,maxcpus=${maxCpu} \
     -m ${vmMem} \
     -name ${vmName} \
     -D "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log" \
