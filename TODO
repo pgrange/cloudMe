@@ -11,9 +11,9 @@ new ideas are added on top of the list
 vvv bug vminventory : GROUP and TYPE are not restricting anything => and that was normal
 vvv bug vmstop : stops everything (but only drops what it is asked to) => due to bug in vmrunning
 vvv have an installer and don't type bin/ for each command
->>> improve doc
+vvv improve doc
 ... option to download latest iso for a distrib
->>> project on github and templates on https://git-lfs.github.com/
+xxx project on github and templates on https://git-lfs.github.com/
 vvv get sudo out of network conf
 ... automatic add in know_hosts upon instanciation
 ... have name resolution
