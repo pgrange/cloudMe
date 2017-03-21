@@ -42,8 +42,10 @@ vm_run() {
   [ "${isoName} " == "none " ] && isoOpt=""
 
   local vmNoGui="-display sdl -no-quit"
+  [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
+
   local telnetPort=$(seq 1024 65535 | grep -v -f <(netstat -tlna | tr -s " " " " | cut -d " " -f 4 | cut -d : -f 2 | sort -n) | tail -1)
-  [ "${guiOpt} " == "gui " ] || vmNoGui="--display none -monitor telnet:127.0.0.1:${telnetPort},server,nowait"
+  local vmMonitor="-monitor telnet:127.0.0.1:${telnetPort},server,nowait"
 
   local memOpt=""
   local hugePageSize=$(grep "^Hugepagesize:" /proc/meminfo | tr -s " " " " | cut -d " " -f 2)
@@ -70,7 +72,7 @@ vm_run() {
     -name ${vmName} \
     -D "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log" \
     --daemonize \
-    ${vmNoGui} \
+    ${vmNoGui} ${vmMonitor} \
     -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface}
     >/dev/null 2>&1
 }
