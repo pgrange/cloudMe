@@ -153,11 +153,13 @@ vm_instantiate() {
 
   local memOpt=${tmplt_vmMem}
   local cpuOpt=${tmplt_vmCpu}
+  local guiOpt=
   if [ -n "${vmOpts}" ] ; then
     for vmOpt in ${vmOpts}
     do
       echo ${vmOpt} | grep ^mem= >/dev/null 2>&1 && memOpt=$(echo $vmOpt | sed 's/^mem=//')
       echo ${vmOpt} | grep ^cpu= >/dev/null 2>&1 && cpuOpt=$(echo $vmOpt | sed 's/^cpu=//')
+      echo ${vmOpt} | grep ^gui  >/dev/null 2>&1 && guiOpt="gui"
     done  
   fi
 
@@ -179,7 +181,7 @@ vmMem=${memOpt}
 vmCpu=${cpuOpt}
 vmDisk=${vmDisk}
 EOF
-    vm_run ${vmName} ${vmGroup}/${vmSubGroup} none
+    vm_run ${vmName} ${vmGroup}/${vmSubGroup} none ${guiOpt}
     vmList="${vmList} ${vmName}"
   done
 

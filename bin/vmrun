@@ -4,9 +4,11 @@ stopSignal=SIGUSR1
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) -f <FILE> | -r <GROUP> | -s <GROUP>
+  echo "usage : $(basename $0) -f <FILE> | -r <GROUP> [ -g ]
+   or : $(basename $0) -s <GROUP>
   -f <FILE> : instanciate servers based on a configuration file. View documentation for file format.
   -r : do not create new VMs and run the ones that had been previously kept in the specified group.
+  -g : when running VMs have a GUI for each one
   -s : stop a running pf by sending it ${stopSignal} (see NOTE below)
   -h : display this help
   NOTE : SIGINT (or ^C) will stop all the managed VMs and will then destoy them. ${stopSignal} will stop and quit as well, but will leave the machiness in place for you to relaunch then at will (that's what the -r option is for)." >&2
@@ -49,12 +51,14 @@ libName=cm_lib
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
 vmName=
-while getopts f:r:s:h name
+guiOpt=
+while getopts f:r:s:gh name
 do
   case $name in
     f) groupConfFile="$OPTARG" ;;
     r) groupStored="$OPTARG" ;;
     s) groupStop="$OPTARG" ;;
+    g) guiOpt="gui" ;;
     h) usage ;;
   esac
 done
@@ -98,7 +102,7 @@ if [ -n "${groupConfFile}" ] ; then
     vmCount=$(echo "${confLine}" | cut -d : -f 2)
     vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
     vmOpts=$(echo "${confLine}" | cut -d : -f 4 | tr ";" " ")
-    vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup} "${vmOpts}")
+    vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup} "${vmOpts} ${guiOpt}")
     for vm in $(echo "${vmSpawned}" | tr -s '\n ' '  ') ; do
       log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
       vms="${vms} ${vm}"
@@ -115,7 +119,7 @@ if [ -n "${groupStored}" ] ; then
   do
     for vmName in $(ls ${vmBaseDir}/${vmGroup}/${subGroup})
     do
-      vm_run ${vmName} ${vmGroup}/${subGroup} none
+      vm_run ${vmName} ${vmGroup}/${subGroup} none ${guiOpt}
       log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_group ${vmName}) group"
       vms="${vms} ${vmName}"
     done
