@@ -252,3 +252,9 @@ vm_type() {
 
   vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 2
 }
+
+vm_console_port() {
+  local vmName=$1
+
+  pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-monitor //;s/ .*$//' | cut -d, -f1 | cut -d: -f3
+}
