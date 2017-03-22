@@ -41,8 +41,8 @@ vm_run() {
   local isoOpt="-cdrom ${isoDir}/${isoName}"
   [ "${isoName} " == "none " ] && isoOpt=""
 
-  #local vmNoGui="-display sdl -vga std -no-quit"
-  local vmNoGui="-vga virtio -no-quit"
+  local vmNoGui="-display sdl -vga virtio -no-quit"
+  #local vmNoGui="-vga virtio -no-quit"
   [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
   local telnetPort=$(seq 1024 65535 | grep -v -f <(netstat -tlna | tr -s " " " " | cut -d " " -f 4 | cut -d : -f 2 | grep -E "^[0-9]+$" | sort -n) | tail -1)
