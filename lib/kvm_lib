@@ -120,7 +120,7 @@ vm_running() {
   [ "${groupName}" == "*" ] && groupName='[^/]*'
   [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
   subGroupDir="${vmBaseDir}/${groupName}/${subGroupName}"
-  
+
   for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${subGroupDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
   do
     vmName=$(echo ${vmPath} | sed -r 's:.*/([^/]+)$:\1:')
@@ -161,7 +161,7 @@ vm_instantiate() {
       echo ${vmOpt} | grep ^mem= >/dev/null 2>&1 && memOpt=$(echo $vmOpt | sed 's/^mem=//')
       echo ${vmOpt} | grep ^cpu= >/dev/null 2>&1 && cpuOpt=$(echo $vmOpt | sed 's/^cpu=//')
       echo ${vmOpt} | grep ^gui  >/dev/null 2>&1 && guiOpt="gui"
-    done  
+    done
   fi
 
   local vmTemplateGroup=${vmCreateGroup}
