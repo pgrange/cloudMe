@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ko() { echo "$1 NOT FOUND."; }
+ok() { echo "$1 found."; }
+tst() {
+  cmd=$1
+  name=$2
+  eval "${cmd}" >/dev/null 2>&1 && ok ${name} || ko ${name}
+}
+
+tst "which qemu-system-$(uname -m)" "qemu"
+tst "which dnsmasq" "dnsmasq"

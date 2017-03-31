@@ -26,8 +26,9 @@ bridgeDhcpStop=192.168.1.254
 
 [ -z ${realDir} ] && realDir=$(dirname $0)
 [ -z ${libDir} ] && libDir=../lib
+[ -z ${etcDir} ] && etcDir=../etc
 
-[ -f ${realDir}/${libDir}/net_conf ] && . ${realDir}/${libDir}/net_conf
+[ -f ${realDir}/${etcDir}/cloudMe_net.conf ] && . ${realDir}/${etcDir}/cloudMe_net.conf
 
 # for now, can be : kvm (virtualbox planned)
 vmBackend=kvm

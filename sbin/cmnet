@@ -2,7 +2,7 @@
 
 cd "$(dirname $0)/.."
 
-. lib/net_conf
+. etc/cloudMe_net.conf
 
 if [ "$1" == "start" ] ; then
   ip link add name ${bridgeInterface} type bridge
