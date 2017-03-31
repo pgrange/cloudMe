@@ -241,6 +241,23 @@ vm_ip() {
   echo $vmIp
 }
 
+vm_name() {
+  local vmIp=$1
+
+  vmName=
+  nameFindingIteration=0
+  nameFindingIterationMax=30
+  while [ ${nameFindingIteration} -le ${nameFindingIterationMax} ]
+  do
+    vmName=$(vm_running "*" "*" | grep ${vmIp}$ | cut -d ' ' -f 1)
+    [ -n "${vmName}" ] && break
+    sleep 1
+    nameFindingIteration=$((${nameFindingIteration}+1))
+  done
+  [ ${nameFindingIteration} -gt ${nameFindingIterationMax} ] && return 1
+  echo $vmName
+}
+
 vm_group() {
   local vmName=$1
 
