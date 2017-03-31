@@ -16,7 +16,7 @@ vvv improve doc
 xxx project on github and templates on https://git-lfs.github.com/
 vvv get sudo out of network conf
 ... automatic add in know_hosts upon instanciation
-... have name resolution
+vvv have name resolution
 vvv instantiation from file
 vvv instantiation becomes a lib function
 vvv create a private host network as I use in virtualbox (https://wiki.archlinux.org/index.php/QEMU#Host-only_networking)

@@ -95,6 +95,8 @@ Finaly, to configure network easily on the machines, we use dnsmasq ::
 
  dnsmasq --interface=bridge0 --bind-interfaces --dhcp-range=192.168.1.2,192.168.1.254
 
+Dnsmasq is providing DHCP service, but it also provides a DNS service. VMs will be able to resolve themselves and the other VMs, and, if you add localhost as a nameserver on the host, you will be able to resolve VMs names from the host.
+
 Installation
 ============
 
