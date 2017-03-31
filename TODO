@@ -5,6 +5,7 @@ v = done
 . = to do
 > = in progress
 ! = bug
+x = canceled
 
 new ideas are added on top of the list 
 
