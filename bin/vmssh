@@ -14,11 +14,14 @@ libName=cm_lib
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
 vmName=$1
-
 [ -z "${vmName}" ] && usage "a machine name or IP is expected as parameter"
+
+shift
+args=$@
+
 vmLine=$(vm_running "*" "*" | grep "^${vmName} ")
 [ -z "${vmLine}" ] && vmLine=$(vm_running "*" "*" | grep " ${vmName}$")
 [ -z "${vmLine}" ] && usage "no such running VM"
 vmIP=$(echo ${vmLine} | sed 's/^.* //')
 
-ssh -o StrictHostKeyChecking=no root@${vmIP}
+ssh -o StrictHostKeyChecking=no root@${vmIP} ${args}
