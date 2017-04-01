@@ -9,9 +9,11 @@ x = canceled
 
 new ideas are added on top of the list 
 
+... separate vmssh in command and fonction, for the other scripts to be able to call it by function
 ... functions that use group / type as parameters must take them as two parameters, not as group/type form
 ... option to download latest iso for known distribs
 ... documentation of available functions and their prototypes in order to be able to develop an other backend
+>>> being able to upgrade templates in an automatic way
 vvv tool to ssh a VM without specifying -o
 xxx automatic add in know_hosts upon instanciation
 vvv bug vminventory : GROUP and TYPE are not restricting anything => and that was normal
