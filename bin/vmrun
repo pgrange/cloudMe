@@ -134,6 +134,9 @@ while [ -n "${vms}" ] ; do
       if [ -n "${ip}" ] ; then
         log "${vmWithoutIp} has IP ${ip}"
         vmsWithoutIp=$(echo "${vmsWithoutIp}" | sed "s/ *${vmWithoutIp} */ /" | sed -r 's/^ *(.*) *$/\1/')
+        log "I set ${vmWithoutIp} its name"
+        echo ${vmWithoutIp} | vmssh ${ip} tee /etc/hostname >/dev/null
+        vmssh ${ip} hostname -F /etc/hostname
       fi
     done
   fi
