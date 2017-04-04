@@ -61,7 +61,7 @@ vm_run() {
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
-  [ ${vmGroup} != ${vmCreateGroup} ] && vmMac=$(vm_mac ${vmName}) || vmMac="00:00:11:22:33:44"
+  vmMac=$(vm_mac_gen ${vmName})
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
@@ -79,10 +79,16 @@ vm_run() {
     >/dev/null 2>&1
 }
 
-vm_mac() {
-  vmName=$1
+vm_mac_gen() {
+  local uuid=$(uuidgen)
+  echo ${uuid} | sed -r 's/-//g;s/^(.{8}).*/0000\1/;s/(..)/\1:/g;s/:$//'
+}
 
-  echo ${vmName} | sed -r 's/-//g;s/^(.{8}).*/0000\1/;s/(..)/\1:/g;s/:$//'
+vm_get_mac() {
+  local vmName=$1
+
+  pgrep -f qemu-system-${vmSystemType} -a | grep " .name ${vmName}" \
+    && pgrep -f qemu-system-${vmSystemType} -a | grep " .name ${vmName}" | sed 's/.*macaddr=//;s/ .*$//'
 }
 
 vm_create() {
@@ -121,12 +127,13 @@ vm_running() {
   [ "${groupName}" == "*" ] && groupName='[^/]*'
   [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
   subGroupDir="${vmBaseDir}/${groupName}/${subGroupName}"
+  [ "${groupName}" == "${vmCreateGroup}" ] && subGroupDir="${vmBaseDir}/${groupName}"
 
   for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${subGroupDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
   do
     vmName=$(echo ${vmPath} | sed -r 's:.*/([^/]+)$:\1:')
     vmGroup=$(echo ${vmPath} | sed -r "s:/${vmName}::")
-    vmMac=$(vm_mac ${vmName})
+    vmMac=$(vm_get_mac ${vmName})
     vmIP=$(grep " ${vmMac} " /var/lib/misc/dnsmasq.leases | cut -d " " -f 3)
     echo ${vmName} ${vmGroup} ${vmIP}
   done
