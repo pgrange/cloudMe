@@ -29,6 +29,7 @@ vm_stop() {
   local vmSubGroup=$3
 
   vmDir="${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/"
+  vmDir=$(echo "${vmDir}" | sed 's://:/:g')
   pgrep -f qemu-system-${vmSystemType} -a | grep "file=${vmDir}" | cut -d " " -f 1 | xargs kill
 }
 
