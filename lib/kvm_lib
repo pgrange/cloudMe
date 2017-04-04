@@ -166,6 +166,7 @@ vm_instantiate() {
   if [ -n "${vmOpts}" ] ; then
     for vmOpt in ${vmOpts}
     do
+      echo ${vmOpt} | grep ^name= >/dev/null 2>&1 && nameOpt=$(echo $vmOpt | sed 's/^name=//')
       echo ${vmOpt} | grep ^mem= >/dev/null 2>&1 && memOpt=$(echo $vmOpt | sed 's/^mem=//')
       echo ${vmOpt} | grep ^cpu= >/dev/null 2>&1 && cpuOpt=$(echo $vmOpt | sed 's/^cpu=//')
       echo ${vmOpt} | grep ^gui  >/dev/null 2>&1 && guiOpt="gui"
@@ -177,9 +178,12 @@ vm_instantiate() {
 
   local vmList=
   local vmDir=${vmBaseDir}/${vmGroup}/${vmSubGroup}
+  local vmIdx=0
   for vmNum in $(seq 1 ${vmCount})
   do
     local vmName=$(uuidgen)
+    [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
+    [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
     local vmDisk=$(vm_clone_disk ${vmTemplateGroup} ${vmTemplate} ${vmGroup}/${vmSubGroup} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
@@ -192,6 +196,7 @@ vmDisk=${vmDisk}
 EOF
     vm_run ${vmName} ${vmGroup}/${vmSubGroup} none ${guiOpt}
     vmList="${vmList} ${vmName}"
+    vmIdx=$((vmIdx+1))
   done
 
   for vmName in ${vmList}
