@@ -81,7 +81,8 @@ vm_run() {
 
 vm_mac_gen() {
   local uuid=$(uuidgen)
-  echo ${uuid} | sed -r 's/-//g;s/^(.{8}).*/0000\1/;s/(..)/\1:/g;s/:$//'
+  echo ${uuid} | sed -r 's/-//g;s/^(.{6}).*/005056\1/;s/(..)/\1:/g;s/:$//'
+  #echo ${uuid} | sed -r 's/-//g;s/^(.{8}).*/0000\1/;s/(..)/\1:/g;s/:$//'
 }
 
 vm_get_mac() {
