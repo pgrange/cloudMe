@@ -21,8 +21,6 @@ groupName="*"
 subGroupName="*"
 [ "$1" == "-h" ] && usage
 
-[ "${groupName}" == "${vmCreateGroup}" ] && usage "can't get inventory for ${vmCreateGroup}"
-
 if [ $# -eq 0 ] ; then
   echo "$(basename $0) is ment to be called by ansible with the --list argument" >&2
   exit 1
@@ -41,8 +39,13 @@ if [ "$1" == "--list" ] ; then
 
     host=$(echo "$line" | cut -d "/" -f 1)
     group=$(echo "$line" | cut -d "/" -f 2)
-    type=$(echo "$line" | cut -d "/" -f 3)
-    ip=$(echo "$line" | cut -d "/" -f 4)
+    if [ "${group}" == "${vmCreateGroup}" ] ; then
+      type=${group}
+      ip=$(echo "$line" | cut -d "/" -f 3)
+    else
+      type=$(echo "$line" | cut -d "/" -f 3)
+      ip=$(echo "$line" | cut -d "/" -f 4)
+    fi
 
     if [ "${previous_type}" != "${type}" ] ; then
       if [ -n "${previous_type}" ] ; then
