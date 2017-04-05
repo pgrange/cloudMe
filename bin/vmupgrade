@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) <TEMPLATE>" >&2
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+vmName=$1
+[ -z "${vmName}" ] && usage "a template name is expected as parameter"
+
+# Template start
+log "starting ${vmName}"
+chmod +w ${vmBaseDir}/${vmCreateGroup}/${vmName}/*img
+vm_run ${vmName} ${vmCreateGroup} none
+log "waiting for ${vmName} to get an IP"
+vmIp=$(vm_ip ${vmName})
+#while [ -z "${vmIp}" ] ; do
+#  vmIp=$(vm_running "${vmCreateGroup}" "*" | grep ${vmName} | cut -d ' ' -f 3 )
+#  sleep 1
+#done
+[ -z "${vmIp}" ] && log "${vmName} did not get an IP in time." && exit
+log "${vmName} started with IP ${vmIp}"
+
+# Template distrib search
+distributionName=$(ansible -i $(which vminventory) ${vmIp} -m setup | tr -d '"' | grep ' ansible_distribution:' | sed 's/^.*: //;s/, *$//')
+log "${vmName} is ${distributionName}"
+
+# Upgrade
+upgradeCmd=
+case ${distributionName} in
+  Archlinux)
+    upgradeCmd="pacman -Syu --noconfirm"
+    ;;
+  Debian)
+    upgradeCmd="DEBIAN_FRONTEND=noninteractive apt-get update && apt-get -y dist-upgrade 2>&1"
+    ;;
+  *)
+    log "${distributionName} is not a distribution we know how to upgrade"
+    ;;
+esac
+if [ -n "${upgradeCmd}" ] ; then
+  log "Upgrading ${vmName} with : ${upgradeCmd}"
+  vm_ssh ${vmName} "${upgradeCmd}"
+  vm_ssh ${vmName} sync
+fi
+
+# Template stop
+log "stoping ${vmName}"
+vm_stop ${vmName} ${vmCreateGroup}
+chmod -w ${vmBaseDir}/${vmCreateGroup}/${vmName}/*img
