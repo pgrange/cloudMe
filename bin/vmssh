@@ -3,6 +3,7 @@
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) <VM>" >&2
+  echo "connects with SSH to the VM specified as name or IP.">&2
   exit
 }
 
@@ -19,9 +20,6 @@ vmName=$1
 shift
 args=$@
 
-vmLine=$(vm_running "*" "*" | grep "^${vmName} ")
-[ -z "${vmLine}" ] && vmLine=$(vm_running "*" "*" | grep " ${vmName}$")
-[ -z "${vmLine}" ] && usage "no such running VM"
-vmIP=$(echo ${vmLine} | sed 's/^.* //')
-
-ssh -o StrictHostKeyChecking=no root@${vmIP} ${args}
+vmIp=$(echo "${vmName}" | sed -r '/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/!d')
+[ -z "${vmIp}" ] && vmIp=$(vm_ip ${vmName})
+vm_ssh ${vmIp} $@
