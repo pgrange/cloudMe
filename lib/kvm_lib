@@ -233,7 +233,7 @@ vm_ssh() {
     sshTry=$((${sshTry}+1))
   done
   [ ${sshTry} -gt ${sshTryMax} ] && return 1
-  ssh -o StrictHostKeyChecking=false root@${vmIp} $@
+  ssh -t -o StrictHostKeyChecking=false root@${vmIp} $@
 }
 
 vm_ip() {
