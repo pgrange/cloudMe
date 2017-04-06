@@ -8,6 +8,7 @@ vmCpu=2
 vmCpuCap=50
 vmCreateGroup="templates"
 vmCreateDiskSize=10
+vmSpicePassword="cloudMe"
 
 vmCount=1
 vmDefaultGroup="group"
@@ -48,6 +49,14 @@ log() {
 error() {
   echo "$@" >&2
   exit 1
+}
+
+free_port() {
+  local portOffset=$1
+  [ -z "${portOffset}" ] && portOffset=1
+  portOffset=$((portOffset+1))
+
+  seq 1024 65535 | grep -v -f <(netstat -tlna | tr -s " " " " | cut -d " " -f 4 | cut -d : -f 2 | grep -E "^[0-9]+$" | sort -n) | tail -${portOffset} | head -1
 }
 
 cm_check() {

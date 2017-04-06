@@ -42,11 +42,13 @@ vm_run() {
   local isoOpt="-cdrom ${isoDir}/${isoName}"
   [ "${isoName} " == "none " ] && isoOpt=""
 
-  local vmNoGui="-display sdl -vga virtio -no-quit"
+  local vmNoGui="-display sdl,gl=on -vga virtio -no-quit"
   [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
-  local telnetPort=$(seq 1024 65535 | grep -v -f <(netstat -tlna | tr -s " " " " | cut -d " " -f 4 | cut -d : -f 2 | grep -E "^[0-9]+$" | sort -n) | tail -1)
+  local spicePort=$(free_port 1)
+  local telnetPort=$(free_port 2)
   local vmMonitor="-monitor telnet:127.0.0.1:${telnetPort},server,nowait"
+  local vmSpice="-spice port=${spicePort},addr=localhost,password=${vmSpicePassword}"
 
   local memOpt=""
   local hugePageSize=$(grep "^Hugepagesize:" /proc/meminfo | tr -s " " " " | cut -d " " -f 2)
@@ -73,7 +75,7 @@ vm_run() {
     -name ${vmName} \
     -D "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log" \
     --daemonize \
-    ${vmNoGui} ${vmMonitor} \
+    ${vmNoGui} ${vmMonitor} ${vmSpice} \
     -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface}
     >/dev/null 2>&1
 }
@@ -284,4 +286,10 @@ vm_console_port() {
   local vmName=$1
 
   pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-monitor //;s/ .*$//' | cut -d, -f1 | cut -d: -f3
+}
+
+vm_spice_port() {
+  local vmName=$1
+
+  pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-spice port=//;s/,.*$//'
 }
