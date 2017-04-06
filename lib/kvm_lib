@@ -54,8 +54,8 @@ vm_run() {
   hugePageFree=$((hugePageFree*hugePageSize/1024))
 
   local maxCpu=$(LC_ALL=C lscpu | grep ^CPU\(s\) | tr -s " " " " | cut -d " " -f 2)
-  #local cpuType="host"
-  local cpuType="qemu64,+vmx"
+  local cpuType="host"
+  #local cpuType="qemu64,+vmx"
 
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
