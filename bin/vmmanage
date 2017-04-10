@@ -36,5 +36,5 @@ shift $(($OPTIND-1))
 
 vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
 
-port=$(vm_spice_port "${vmName}")
-spicy -h localhost -p $port -w ${vmSpicePassword} --class=qemu-system-${vmSystemType} >/dev/null 2>&1 &
+port=$(vm_console_port "${vmName}")
+telnet localhost $port
