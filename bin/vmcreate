@@ -60,8 +60,6 @@ do
 done
 shift $(($OPTIND-1))
 
-[ ! -f .ssh_key -o ! -f .ssh_key.pub ] && rm -f .ssh_key .ssh_key.pub && ssh-keygen -N "" -t rsa -b 4096 -f .ssh_key -C "cloudMe"
-
 [ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
 [ -z "$isoName" ] && usage "-i <ISO_file> is mandatory"
 

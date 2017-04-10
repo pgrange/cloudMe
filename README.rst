@@ -116,13 +116,12 @@ You first need to have an ISO of the system you want to install (ex: archlinux.i
 Once the machine created, it will start and you will have to make your template corresponding to the following standards :
 
 - VM must be accessible through ssh
-- .ssh_key.pub (created by vmCreate) must be added to root's .authorized_keys
 - python must be installed
 - network is using dhcp
 
 You can create as much templates as you want.
 
-Note that vmCreate can also be used to adjust VM configuration (using -a switch). VM must be powered off first.
+Note that vmcreate can also be used to adjust VM configuration (using -a switch). VM must be powered off first.
 
 Clone generation
 ================
