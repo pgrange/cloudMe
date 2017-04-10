@@ -147,11 +147,7 @@ vm_configure() {
   local vmName=$1
 
   local vmIp=$(vm_ip ${vmName})
-  vm_ssh ${vmIp} "cat /etc/ssh/ssh_host_ecdsa_key.pub" | cut -d " " -f 2 >&2
-  local vmKey=$(vm_ssh ${vmIp} "cat /etc/ssh/ssh_host_ecdsa_key.pub" | cut -d " " -f 2)
-  sed -i "/^${vmIp} /d" ~/.ssh/known_hosts
-  echo "${vmIp} ecdsa-sha2-nistp256 ${vmKey}" >> ~/.ssh/known_hosts
-  vm_ssh ${vmIp} "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname ; reboot"
+  vm_ssh ${vmIp} "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname"
 }
 
 vm_instantiate() {

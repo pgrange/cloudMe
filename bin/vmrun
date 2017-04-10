@@ -135,9 +135,6 @@ while [ -n "${vms}" ] ; do
       if [ -n "${ip}" ] ; then
         log "${vmWithoutIp} has IP ${ip}"
         vmsWithoutIp=$(echo "${vmsWithoutIp}" | sed "s/ *${vmWithoutIp} */ /" | sed -r 's/^ *(.*) *$/\1/')
-        log "I set ${vmWithoutIp} its name"
-        echo ${vmWithoutIp} | vmssh ${ip} tee /etc/hostname >/dev/null 2>&1
-        vmssh ${ip} hostname -F /etc/hostname >/dev/null 2>&1
         log "${vmWithoutIp} has console port $(vm_console_port ${vmWithoutIp})"
         log "${vmWithoutIp} has spice port $(vm_spice_port ${vmWithoutIp})"
         loopOperations=$((loopOperations+1))
