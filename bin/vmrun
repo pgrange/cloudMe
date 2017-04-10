@@ -128,6 +128,7 @@ fi
 
 vmsWithoutIp=${vms}
 while [ -n "${vms}" ] ; do
+  loopOperations=0
   if [ -n "${vmsWithoutIp}" ] ; then
     for vmWithoutIp in ${vmsWithoutIp} ; do
       ip=$(vm_running "${vmGroup}" "*" | grep ${vmWithoutIp} | cut -d ' ' -f 3 )
@@ -139,6 +140,7 @@ while [ -n "${vms}" ] ; do
         vmssh ${ip} hostname -F /etc/hostname >/dev/null 2>&1
         log "${vmWithoutIp} has console port $(vm_console_port ${vmWithoutIp})"
         log "${vmWithoutIp} has spice port $(vm_spice_port ${vmWithoutIp})"
+        loopOperations=$((loopOperations+1))
       fi
     done
   fi
@@ -146,6 +148,7 @@ while [ -n "${vms}" ] ; do
     if [ -z "$(vm_running "${vmGroup}" "*" | grep ${vm})" ] ; then
       log "${vm} has vanished..."
       vms=$(echo "${vms}" | sed "s/ *${vm} */ /;s/^ *//;s/ *$//")
+      loopOperations=$((loopOperations+1))
     fi
   done
   for vm in $(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1) ; do
@@ -153,9 +156,10 @@ while [ -n "${vms}" ] ; do
       log "${vm} has joined the group from outer space."
       vms="${vms} ${vm}"
       vmsWithoutIp="${vmsWithoutIp} ${vm}"
+      loopOperations=$((loopOperations+1))
     fi
   done
-  sleep 1
+  [ ${loopOperations} -eq 0 ] && sleep 1
 done
 
 log "All of my machines have gone."
