@@ -221,6 +221,8 @@ is_vm_running() {
 
 vm_ssh() {
   local vmIp=$1
+  local vmIpTest=$(echo "${vmIp}" | sed -r '/^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/!d')
+  [ "${vmIpTest}" != "${vmIp}" ] && vmIp=$(vm_ip ${vmIp})
   shift
 
   sshTry=0
