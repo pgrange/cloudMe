@@ -44,8 +44,8 @@ case ${distributionName} in
 esac
 if [ -n "${upgradeCmd}" ] ; then
   log "Upgrading ${vmName} with : ${upgradeCmd}"
-  vm_ssh ${vmName} "${upgradeCmd}"
-  vm_ssh ${vmName} sync
+  vm_ssh ${vmIp} "${upgradeCmd}"
+  vm_ssh ${vmIp} sync
 fi
 
 # Template stop
