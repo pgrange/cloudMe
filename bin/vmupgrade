@@ -22,10 +22,6 @@ chmod +w ${vmBaseDir}/${vmCreateGroup}/${vmName}/*img
 vm_run ${vmName} ${vmCreateGroup} none
 log "waiting for ${vmName} to get an IP"
 vmIp=$(vm_ip ${vmName})
-#while [ -z "${vmIp}" ] ; do
-#  vmIp=$(vm_running "${vmCreateGroup}" "*" | grep ${vmName} | cut -d ' ' -f 3 )
-#  sleep 1
-#done
 [ -z "${vmIp}" ] && log "${vmName} did not get an IP in time." && exit
 log "${vmName} started with IP ${vmIp}"
 
