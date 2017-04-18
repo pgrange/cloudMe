@@ -181,7 +181,7 @@ vminstantiate - making clones
 
 
 
-vmlaunch - run all the VMs of a group
+vmrun - run all the VMs of a group
 -------------------------------------
 
 
