@@ -63,13 +63,20 @@ vm_run() {
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
+  vmExtraDisk=$(
+    echo "${vmExtraDisk}" | \
+    sed -r 's/^/</;s/$/>/;s/,/> </g' |
+    sed 's/</-drive file=/g' | \
+    sed 's/>/,format=qcow2,if=virtio/g' \
+  )
+
   vmMac=$(vm_mac_gen ${vmName})
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
     ${memOpt} \
     -boot order=d \
-    -drive file="${vmDisk}",format=qcow2,if=virtio,boot=on \
+    -drive file="${vmDisk}",format=qcow2,if=virtio ${vmExtraDisk} \
     -cpu ${cpuType} \
     -smp cpus=${vmCpu},cores=1,maxcpus=${maxCpu} \
     -m ${vmMem} \
@@ -162,6 +169,8 @@ vm_instantiate() {
 
   local memOpt=${tmplt_vmMem}
   local cpuOpt=${tmplt_vmCpu}
+  local dskOpt=
+  local dskList=
   local guiOpt=
   if [ -n "${vmOpts}" ] ; then
     for vmOpt in ${vmOpts}
@@ -169,6 +178,7 @@ vm_instantiate() {
       echo ${vmOpt} | grep ^name= >/dev/null 2>&1 && nameOpt=$(echo $vmOpt | sed 's/^name=//')
       echo ${vmOpt} | grep ^mem= >/dev/null 2>&1 && memOpt=$(echo $vmOpt | sed 's/^mem=//')
       echo ${vmOpt} | grep ^cpu= >/dev/null 2>&1 && cpuOpt=$(echo $vmOpt | sed 's/^cpu=//')
+      echo ${vmOpt} | grep ^dsk= >/dev/null 2>&1 && dskOpt=$(echo $vmOpt | sed 's/^dsk=//')
       echo ${vmOpt} | grep ^gui  >/dev/null 2>&1 && guiOpt="gui"
     done
   fi
@@ -188,11 +198,19 @@ vm_instantiate() {
     local vmDisk=$(vm_clone_disk ${vmTemplateGroup} ${vmTemplate} ${vmGroup}/${vmSubGroup} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
     [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
+    if [ -n "${dskOpt}" ] ; then
+      for dskSize in $(echo ${dskOpt} | tr ',' ' ')
+      do
+        dskName=$(vm_disk_create ${vmName} ${vmGroup}/${vmSubGroup} ${dskSize})
+        [ -z "${dskList}" ] && dskList="${dskName}" || dskList="${dskList},${dskName}"
+      done
+    fi
     cat > ${vmDir}/${vmName}/${vmName}.conf <<EOF
 vmName=${vmName}
 vmMem=${memOpt}
 vmCpu=${cpuOpt}
 vmDisk=${vmDisk}
+vmExtraDisk=${dskList}
 EOF
     vm_run ${vmName} ${vmGroup}/${vmSubGroup} none ${guiOpt}
     vmList="${vmList} ${vmName}"
