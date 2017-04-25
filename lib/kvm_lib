@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This is kvm implementation of the cloudMe lib
+
 vmBaseDir="$HOME/Documents/kvm/VMs"
 vmDiskExt="img"
 vmSystemType=$(uname -m)
@@ -7,8 +9,10 @@ vmSystemType=$(uname -m)
 vm_disk_create() {
   local vmName=$1
   local vmCreateGroup=$2
-  local vmCreateDiskSize=$3
+  local vmCreateType=$3
+  local vmCreateDiskSize=$4
 
+  [ -n "${vmCreateType}" ] && vmCreateGroup=${vmCreateGroup}/${vmCreateType}
   local vmDiskCount=0
   while [ -f "${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}" ] ; do vmDiskCount=$((vmDiskCount+1)) ; done
   local vmDisk="${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}"
@@ -63,7 +67,7 @@ vm_run() {
   [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
-  vmExtraDisk=$(
+  [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
     echo "${vmExtraDisk}" | \
     sed -r 's/^/</;s/$/>/;s/,/> </g' |
     sed 's/</-drive file=/g' | \
@@ -103,10 +107,18 @@ vm_get_mac() {
 vm_create() {
   local vmName=$1
   local vmGroup=$2
-  local isoName=$3
+  local vmType=$3
+  local isoName=$4
 
-  local vmDisk="${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.${vmDiskExt}"
-  [ -f "${vmDisk}" ] || ${vmDisk}="$(vm_disk_create ${vmName} ${vmGroup} ${vmCreateDiskSize})"
+  [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
+  vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
+  cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
+vmName=${vmName}
+vmMem=${vmMem}
+vmCpu=${vmCpu}
+vmDisk=${vmDisk}
+EOF
+  [ -n "${vmType}" ] && vmGroup="${vmGroup}/${vmType}"
   vm_run ${vmName} ${vmGroup} "${isoName}" gui
 }
 
@@ -201,7 +213,7 @@ vm_instantiate() {
     if [ -n "${dskOpt}" ] ; then
       for dskSize in $(echo ${dskOpt} | tr ',' ' ')
       do
-        dskName=$(vm_disk_create ${vmName} ${vmGroup}/${vmSubGroup} ${dskSize})
+        dskName=$(vm_disk_create ${vmName} ${vmGroup} ${vmSubGroup} ${dskSize})
         [ -z "${dskList}" ] && dskList="${dskName}" || dskList="${dskList},${dskName}"
       done
     fi

@@ -63,17 +63,17 @@ shift $(($OPTIND-1))
 [ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
 [ -z "$isoName" ] && usage "-i <ISO_file> is mandatory"
 
-[ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
-cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
+if [ $adjust -eq 0 ]
+then
+  #vmDisk=$(vm_disk_create ${vmName} ${vmCreateGroup} "" ${vmCreateDiskSize})
+  vm_create ${vmName} ${vmCreateGroup} "" ${isoName}
+else
+  [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
+  cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
 vmName=${vmName}
 vmMem=${vmMem}
 vmCpu=${vmCpu}
 vmDisk=${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
 EOF
 # vmCpuCap=${vmCpuCap}
-
-if [ $adjust -eq 0 ]
-then
-  vmDisk=$(vm_disk_create ${vmName} ${vmCreateGroup} ${vmCreateDiskSize})
-  vm_create ${vmName} ${vmCreateGroup} ${isoName}
 fi
