@@ -4,6 +4,13 @@ cd "$(dirname $0)/.."
 
 . etc/cloudMe_net.conf
 
+[ -d /etc/qemu ] || mkdir -p /etc/qemu
+[ -f /etc/qemu/bridge.conf ] || echo "allow all" > /etc/qemu/bridge.conf
+grep "^allow all$" /etc/qemu/bridge.conf >/dev/null || echo "allow all" >> /etc/qemu/bridge.conf
+chown -R root:kvm /etc/qemu
+chmod 750 /etc/qemu
+chmod 640 /etc/qemu/bridge.conf
+
 if [ "$1" == "start" ] ; then
   ip link add name ${bridgeInterface} type bridge
   ip link set ${bridgeInterface} up

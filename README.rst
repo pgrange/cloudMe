@@ -59,17 +59,6 @@ If you want to keep it simple, a basic configuration can be done using the scrip
 
 It brings the bridge0 interface up and launches dnsmasq.
 
-Qemu configuration
-------------------
-
-The file /etc/qemu/bridge.conf determines which bridge interface QEMU is allowed to use. To simplify, we will allow all (You can be more restrictive if needed). Configuration is done, running this commands as root ::
-
- mkdir -p /etc/qemu
- echo "allow all" >> /etc/qemu/bridge.conf
- chown -R root:kvm /etc/qemu
- chmod 750 /etc/qemu
- chmod 640 /etc/qemu/bridge.conf
-
 Bridge interface
 ----------------
 
