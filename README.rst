@@ -47,8 +47,11 @@ also, in order to improve networking performance, load the vhost_net module ::
 
  echo vhost_net | sudo tee /etc/modules-load.d/kvm.conf
 
-Network pre-requisites
-======================
+Network
+=======
+
+Configuration
+-------------
 
 The solution is based on bridging capability. Setup needs root access and I want to reduce sudo commands through the tools at its minimum. Needs are explained below.
 
@@ -57,18 +60,12 @@ If you want to keep it simple, a basic configuration can be done using the scrip
  sudo sbin/cmnet start
  sudo sbin/cmnet stop
 
-It brings the bridge0 interface up and launches dnsmasq.
+It brings the bridge0 interface up and launches dnsmasq (for DHCP and name resolution inside the VMs).
 
-Bridge interface
-----------------
+firewalling
+-----------
 
-At least on bridge interface must exist on your system. For the default configuration, this is done with the following commands ::
-
- ip link add name bridge0 type bridge
- ip link set bridge0 up
- ip addr add 192.168.1.1/24 dev bridge0
-
-If you, as I do, use iptables on your machine, this new interface must be configured in order to access read network through the host ::
+If you, as I do, use iptables on your machine, the bridge interface created by cmnet must be configured in order to access read network through the host ::
 
  sysctl -q net.ipv4.conf.all.forwarding=1
  iptables -I INPUT -i bridge0 -j ACCEPT
@@ -77,14 +74,7 @@ If you, as I do, use iptables on your machine, this new interface must be config
  iptables -A fw-interfaces -i bridge0 -j ACCEPT
  iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o bond0 -j MASQUERADE
 
-dnsmasq
--------
-
-Finaly, to configure network easily on the machines, we use dnsmasq ::
-
- dnsmasq --interface=bridge0 --bind-interfaces --dhcp-range=192.168.1.2,192.168.1.254
-
-Dnsmasq is providing DHCP service, but it also provides a DNS service. VMs will be able to resolve themselves and the other VMs, and, if you add localhost as a nameserver on the host, you will be able to resolve VMs names from the host.
+If you change your configuration in /usr/local/bin/etc/cloudMe_net.conf, you will need to adapt the above line (interface name, subnet...)
 
 Installation
 ============
