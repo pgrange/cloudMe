@@ -132,8 +132,19 @@ For instance the following file produces 2 VMs of type web and 1 VM of type sql 
 
 You can specify cpu and memory for each line using the following syntax ::
 
- archlinux:1:sql:mem=1024 cpu=4
- archlinux:2:wab:mem=512
+ archlinux:1:sql:mem=1024;cpu=4
+ archlinux:2:web:mem=512
+
+You can also add additional disks for VMs with the dsk option (sizes in GB) ::
+
+ archlinux:1:sql:mem=1024;cpu=4;dsk=5,5
+
+If you want your machines to have more human-friendly names (instead of UUIDs), specify a name prefix ::
+
+ archlinux:1:sql:mem=1024;cpu=4;name=db
+ archlinux:2:web:mem=512;name=web
+
+This will create a server called db00 for the first line and two servers on the second, called web00 and web01.
 
 The file (named pftest) is called with the following command ::
 
