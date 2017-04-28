@@ -9,6 +9,8 @@ x = canceled
 
 new ideas are added on top of the list
 
+... change name
+... make cmnet a service
 ... make versions
 ... secure spice connections
 >>> functions that use group / type as parameters must take them as two parameters, not as group/type form
