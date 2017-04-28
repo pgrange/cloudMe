@@ -9,7 +9,7 @@ usage() {
   -C <VM_CPU_CAP> : percentage of usage of physical CPU (default ${vmCpuCap}) # not yet implemented
   -d <DISK_SIZE> : disk allocation for the VM in GB (default ${vmCreateDiskSize})
   -a : VM will not be created. Parameters will be adjusted (does not affect DISK_SIZE yet)
-  -i <ISO_FILE> : name of an iso to mount from ${isoDir} (mandatory)
+  -i <ISO_FILE> : name of an iso to mount (mandatory)
   -h : display this help" >&2
   exit
 }
@@ -51,7 +51,7 @@ do
       ;;
     i)
       isoName="$OPTARG"
-      [ -f ${isoDir}/${isoName} ] || usage "${isoDir}/${isoName} does not exists"
+      [ -f ${isoName} ] || usage "${isoName} does not exists"
       ;;
     h)
       usage
