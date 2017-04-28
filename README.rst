@@ -114,6 +114,13 @@ Once your template is good, you can use it to generate new VMs ::
 
 will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
 
+In order to organize your VMs they are grouped. This is done using a two level hierarchy :
+
+- groups will represent a kind of platform, a set of machines you use for a service.
+- types will be subgroups of servers that will group VMs by function.
+
+When nothing is specified, using vminstanciate, machines will be created in group "group" and of type "default".
+
 Using description file
 ----------------------
 
@@ -123,12 +130,12 @@ If you want to automate the creation of a set of VMs, you can create description
 - number of clones
 - type name
 
-The group of the machines will be deduced from the file name.
+The group of machines will be deduced from the file name.
 
 For instance the following file produces 2 VMs of type web and 1 VM of type sql ::
 
- archlinux:2:web
  archlinux:1:sql
+ archlinux:2:web
 
 You can specify cpu and memory for each line using the following syntax ::
 
@@ -138,6 +145,7 @@ You can specify cpu and memory for each line using the following syntax ::
 You can also add additional disks for VMs with the dsk option (sizes in GB) ::
 
  archlinux:1:sql:mem=1024;cpu=4;dsk=5,5
+ archlinux:2:web:mem=512
 
 If you want your machines to have more human-friendly names (instead of UUIDs), specify a name prefix ::
 
@@ -151,6 +159,35 @@ The file (named pftest) is called with the following command ::
  vminstantiate -f pftest
 
 And so the machines will be in the pftest group.
+
+Groups and types, besides being structural in the VM directory structure, and for naming purpose, will be used for instance if you configure those machines with ansible. Once the previous instanciation has been done, you can use dynamic inventory ::
+
+ vminventory --list
+ {
+   "pftest_sql" : {
+     "hosts" : [  "192.168.1.176", ],
+   },
+   "pftest_web" : {
+     "hosts" : [  "192.168.1.19", "192.168.1.23", ],
+   },
+   "pftest" : {
+     "children" : [ "pftest_sql", "pftest_web", ],
+     "vars": {
+       "ansible_ssh_common_args": "-o StrictHostKeyChecking=no",
+       "ansible_user": "root",
+     },
+   },
+ }
+
+You can then stop your VMs using (-d option destroys the machines) ::
+
+ vmstop -d -g pftest
+
+Alternatively, you can launch your description file using ::
+
+ vmrun -f pftest
+
+It will stay in foreground and log (hopefuly) useful information until you press ^C which will make it kill and destroy all its machines.
 
 Tools
 =====
