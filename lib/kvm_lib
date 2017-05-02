@@ -44,7 +44,9 @@ vm_run() {
   local isoName=$3
   local guiOpt=$4
 
-  local isoOpt="-cdrom ${isoDir}/${isoName}"
+  local isoOpt=""
+  [ -f "${isoDir}/${isoName}" ] && isoOpt="-cdrom ${isoDir}/${isoName}"
+  [ -f "${isoName}" ] && isoOpt="-cdrom ${isoName}"
   [ "${isoName} " == "none " ] && isoOpt=""
 
   local vmNoGui="-display sdl,gl=on -vga virtio -no-quit"
