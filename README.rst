@@ -95,12 +95,21 @@ You first need to have an ISO of the system you want to install (ex: archlinux.i
 Once the machine created, it will start and you will have to make your template corresponding to the following standards :
 
 - VM must be accessible through ssh
-- python must be installed
 - network is using dhcp
+- python is better to be installed has ansible is the tool of choice to operate on those VMs
 
 You can create as much templates as you want.
 
 Note that vmcreate can also be used to adjust VM configuration (using -a switch). VM must be powered off first.
+
+Template downloading
+====================
+
+You can download existing templates using this ::
+
+ ./vmtemplate archlinux
+
+available templates can be listed with -h option
 
 Clone generation
 ================

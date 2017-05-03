@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+templates="archlinux debian8"
+templates_details="
+archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;71f4f44057d8d9b32be15edf25ca595d;13
+debian8;http://n0vember.free.fr/nocloud/templates/debian8;18355f4ce9673be5523f831f062eea28;19
+"
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) <TEMPLATE_NAME>
+  TEMPLATE_NAME : one of ${templates}
+  -h : display this help" >&2
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+while getopts h name
+do
+  case $name in
+    h) usage ;;
+  esac
+done
+shift $(($OPTIND-1))
+
+template=$1
+echo ${templates} | tr " " "\n" | grep "^${template}$" >/dev/null || usage "unknown template"
+template_base_url=$(echo "${templates_details}" | grep "^${template};" | cut -d";" -f 2)
+template_base_md5=$(echo "${templates_details}" | grep "^${template};" | cut -d";" -f 3)
+template_base_num=$(echo "${templates_details}" | grep "^${template};" | cut -d";" -f 4)
+template_dir=${vmBaseDir}/${vmCreateGroup}/${template}
+
+[ -d "${template_dir}" ] && usage "you already have a template called ${template}"
+mkdir -p ${template_dir}/${template}.tmp
+cd ${template_dir}
+log "fetching ${template}.conf"
+curl -sO ${template_base_url}/${template}.conf
+log "checking compression"
+curl -sO ${template_base_url}/compression
+compression_mode=$(cat compression)
+rm compression
+ext=
+decomp="cat"
+case ${compression_mode} in
+  xz)
+    ext=".xz"
+    decomp="xz -d"
+    ;;
+  gzip)
+    ext=".gz"
+    decomp="gzip -d"
+    ;;
+esac
+log "fetching image $((${template_base_num}+1)) chunks"
+for num in $(seq -f "%03g" 0 ${template_base_num})
+do
+  log "  ${template}.img.${num}... "
+  curl -s -o ${template}.tmp/${template}.img.${num}${ext} ${template_base_url}/${template}.img/${template}.img.${num}${ext}
+done
+. ${template}.conf
+log "concatenate chunks in ${vmDisk}"
+cat ${template}.tmp/${template}.img.* | ${decomp} >> ${vmDisk}
+rm -r ${template}.tmp
+
+log "checking md5"
+md5=$(cat ${vmDisk} | md5sum | sed 's/ .*//')
+[ "${md5}" == "${template_base_md5}" ] || usage "checkum does not match (got ${md5})"
+
+log "starting template"
+vm_run ${template} ${vmCreateGroup} "none"
+vmIp=$(vm_ip ${template})
+set -x
+log "sending public keys"
+ls ~/.ssh/*.pub >/dev/null 2>&1 || usage "you don't have ssh keys"
+mkdir -p /tmp/nocloud.$$/${template}
+cp ${realDir}/../etc/nocloud /tmp/nocloud.$$/${template}
+chmod 600 /tmp/nocloud.$$/${template}/nocloud
+cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -l root -i /tmp/nocloud.$$/${template}/nocloud ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
+rm /tmp/nocloud.$$/${template}/nocloud
+
+log "stopping vm"
+vm_ssh ${vmIp} poweroff >/dev/null 2>&1
