@@ -1,0 +1,23 @@
+#!/bin/bash
+
+mod_load() {
+  local module=$1
+  local loaded=$(lsmod | grep "^${module} " | wc -l)
+  if [ ${loaded} -eq 1 ] ; then
+    local deps=$(lsmod | grep "^${module} " | sed 's/^.* //')
+    if [ ${deps} -eq 0 ] ; then
+      rmmod ${module}
+      modprobe ${module}
+    #else
+      #echo "${module} is loaded with dependencies. I cannot reload it."
+    fi
+  else
+    modprobe ${module}
+  fi
+}
+
+echo options kvm_intel nested=1 > /etc/modprobe.d/kvm.conf
+echo vhost_net > /etc/modules-load.d/kvm.conf
+
+mod_load kvm_intel
+mod_load vhost_net

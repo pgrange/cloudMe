@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd "$(dirname $0)/.."
+
+. etc/nocloud_net.conf
+
+if [ "$1" == "start" ] ; then
+  ip link add name ${bridgeInterface} type bridge
+  ip link set ${bridgeInterface} up
+  ip addr add ${bridgeAddress} dev ${bridgeInterface}
+fi
+
+if [ "$1" == "stop" ] ; then
+  ip link delete ${bridgeInterface}
+fi

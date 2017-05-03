@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Following variables are default values. They can be redefined in .cloudMe.conf, ~/.config/cloudMe/cloudMe.conf or /etc/cloudMe.conf
+# Following variables are default values. They can be redefined in .nocloud.conf, ~/.config/nocloud/nocloud.conf or /etc/nocloud.conf
 
 vmMem=512
 vmMemVid=12
@@ -8,7 +8,7 @@ vmCpu=2
 vmCpuCap=50
 vmCreateGroup="templates"
 vmCreateDiskSize=10
-vmSpicePassword="cloudMe"
+vmSpicePassword="nocloud"
 
 vmCount=1
 vmDefaultGroup="group"
@@ -29,7 +29,8 @@ bridgeDhcpStop=192.168.1.254
 [ -z ${libDir} ] && libDir=../lib
 [ -z ${etcDir} ] && etcDir=../etc
 
-[ -f ${realDir}/${etcDir}/cloudMe_net.conf ] && . ${realDir}/${etcDir}/cloudMe_net.conf
+netConf=${realDir}/${etcDir}/nocloud_net.conf
+[ -f ${netConf} ] && . ${netConf}
 
 # for now, can be : kvm (virtualbox planned)
 vmBackend=kvm
@@ -74,9 +75,9 @@ cm_check() {
 cm_check ${bridgeInterface}
 
 # ConfFile search and source
-confFile=.cloudMe.conf
-[ -f ${confFile} ] || confFile=~/.config/cloudMe/cloudMe.conf
-[ -f ${confFile} ] || confFile=/etc/cloudMe.conf
+confFile=.nocloud.conf
+[ -f ${confFile} ] || confFile=~/.config/nocloud/nocloud.conf
+[ -f ${confFile} ] || confFile=/etc/nocloud.conf
 if [ -f ${confFile} ] ; then
   . ${confFile}
 fi

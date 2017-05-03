@@ -1,0 +1,13 @@
+[Unit]
+Description=nocloud bridge interface
+Documentation=man:ip
+After=network.target nss-lookup.target systemd-resolved.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/nocloud-bridge start
+ExecStop=/usr/local/sbin/nocloud-bridge stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

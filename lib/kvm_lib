@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This is kvm implementation of the cloudMe lib
+# This is kvm implementation of the nocloud lib
 
 vmBaseDir="$HOME/Documents/kvm/VMs"
 vmDiskExt="img"

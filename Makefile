@@ -13,11 +13,11 @@ ETC= $(wildcard etc/*)
 SINSTALL_OPTS=-o root -g kvm -m 0755
 SBIN= $(wildcard sbin/*)
 
-.PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC)
+.PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC) system
 
-all: $(BIN) $(LIB) $(SBIN) $(ETC)
+all: $(BIN) $(LIB) $(SBIN) $(ETC) system
 	@echo +++ checking prerequisites
-	@./.prerequisites
+	@tools/prerequisites
 
 $(BIN):
 	$(INSTALL) $(INSTALL_OPTS) $@ $(PREFIX)/$@
@@ -30,3 +30,9 @@ $(SBIN):
 
 $(ETC):
 	$(INSTALL) $(CINSTALL_OPTS) $@ $(PREFIX)/$@
+
+system:
+	@echo +++ installing service
+	@tools/qemu-bridge
+	@tools/kvm-mod
+	@cd services && make

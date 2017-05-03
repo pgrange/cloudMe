@@ -1,11 +1,11 @@
 =======
-cloudMe
+nocloud
 =======
 
 TL;DR
 =====
 
-cloudMe is a set of tools to run a mini-cloud on your machine based on kvm / qemu and written in bash.
+nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qemu and written in bash.
 
 To create a template and instanciate 5 times this template ::
 
@@ -15,7 +15,7 @@ To create a template and instanciate 5 times this template ::
 Presentation
 ============
 
-cloudMe is a cheap solution to own your cloud. It was first developped as a side project to provide the tools I needed for my virtualbox usage. I switched to kvm backend but keeping in mind the possibility to offer multiple backends.
+nocloud is a cheap solution to own your cloud. It was first developped as a side project to provide the tools I needed for my virtualbox usage. I switched to kvm backend but keeping in mind the possibility to offer multiple backends.
 
 it is :
 
@@ -39,14 +39,6 @@ Following things needs to be installed on your machine :
 - dnsmasq
 - make
 
-kvm_intel module must be passed an option. This can be done with the following ::
-
- echo options kvm_intel nested=1 | sudo tee /etc/modprobe.d/kvm.conf
-
-also, in order to improve networking performance, load the vhost_net module ::
-
- echo vhost_net | sudo tee /etc/modules-load.d/kvm.conf
-
 Network
 =======
 
@@ -55,12 +47,14 @@ Configuration
 
 The solution is based on bridging capability. Setup needs root access and I want to reduce sudo commands through the tools at its minimum. Needs are explained below.
 
-If you want to keep it simple, a basic configuration can be done using the script cmnet (eun as root) from sbin directory ::
+During installation, 2 services are created :
 
- sudo sbin/cmnet start
- sudo sbin/cmnet stop
+- nocloud-bridge which creates a bridge interface
+- nocloud-dnsmasq brings a dnsmasq server up to serve DHCP and DNS to the machines
 
-It brings the bridge0 interface up and launches dnsmasq (for DHCP and name resolution inside the VMs).
+The configuration file /etc/qemu/bridge.conf is also created during installation. It allows qemu to bring machines interfaces connected to the bridge inteface.
+
+Installation also configures the kvm_intel and vhost_net modules.
 
 firewalling
 -----------
@@ -68,13 +62,13 @@ firewalling
 If you, as I do, use iptables on your machine, the bridge interface created by cmnet must be configured in order to access read network through the host ::
 
  sysctl -q net.ipv4.conf.all.forwarding=1
- iptables -I INPUT -i bridge0 -j ACCEPT
+ iptables -I INPUT -i nocloud -j ACCEPT
  iptables -N fw-interfaces
  iptables -A FORWARD -j fw-interfaces
- iptables -A fw-interfaces -i bridge0 -j ACCEPT
+ iptables -A fw-interfaces -i nocloud -j ACCEPT
  iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o bond0 -j MASQUERADE
 
-If you change your configuration in /usr/local/bin/etc/cloudMe_net.conf, you will need to adapt the above line (interface name, subnet...)
+If you change your configuration in /usr/local/bin/etc/nocloud_net.conf, you will need to adapt the above line (interface name, subnet...)
 
 Installation
 ============
