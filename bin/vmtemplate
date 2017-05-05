@@ -64,11 +64,11 @@ do
 done
 . ${template}.conf
 log "concatenate chunks in ${vmDisk}"
-cat ${template}.tmp/${template}.img.* | ${decomp} >> ${vmDisk}
+cat ${template}.tmp/${template}.img.* | ${decomp} >> ${vmBaseDir}/${vmDisk}
 rm -r ${template}.tmp
 
 log "checking md5"
-md5=$(cat ${vmDisk} | md5sum | sed 's/ .*//')
+md5=$(cat ${vmBaseDir}/${vmDisk} | md5sum | sed 's/ .*//')
 [ "${md5}" == "${template_base_md5}" ] || usage "checkum does not match (got ${md5})"
 
 log "starting template"

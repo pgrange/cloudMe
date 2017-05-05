@@ -15,16 +15,16 @@ vm_disk_create() {
   [ -n "${vmCreateType}" ] && vmCreateGroup=${vmCreateGroup}/${vmCreateType}
   local vmDiskCount=0
   while [ -f "${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}" ] ; do vmDiskCount=$((vmDiskCount+1)) ; done
-  local vmDisk="${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}"
-  if [ -f "${vmDisk}" ]
+  local vmDisk="${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}"
+  if [ -f "${vmBaseDir}/${vmDisk}" ]
   then
-    echo "${vmDisk}"
+    echo "${vmBaseDir}/${vmDisk}"
   else
-    local vmDiskPath=$(dirname "${vmDisk}")
+    local vmDiskPath=$(dirname "${vmBaseDir}/${vmDisk}")
     mkdir -p "$vmDiskPath" || usage "unable to create ${vmDiskPath}"
-    qemu-img create -q -f qcow2 "${vmDisk}" ${vmCreateDiskSize}G >/dev/null >&2
+    qemu-img create -q -f qcow2 "${vmBaseDir}/${vmDisk}" ${vmCreateDiskSize}G >/dev/null >&2
     ret=$?
-    [ $ret -eq 0 ] && echo "${vmDisk}" || usage "unable to create ${vmDisk}"
+    [ $ret -eq 0 ] && echo "${vmDisk}" || usage "unable to create ${vmBaseDir}/${vmDisk}"
   fi
 }
 
@@ -72,7 +72,7 @@ vm_run() {
   [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
     echo "${vmExtraDisk}" | \
     sed -r 's/^/</;s/$/>/;s/,/> </g' |
-    sed 's/</-drive file=/g' | \
+    sed "s:<:-drive file=${vmBaseDir}/:g" | \
     sed 's/>/,format=qcow2,if=virtio/g' \
   )
 
@@ -82,7 +82,7 @@ vm_run() {
     ${isoOpt} \
     ${memOpt} \
     -boot order=d \
-    -drive file="${vmDisk}",format=qcow2,if=virtio ${vmExtraDisk} \
+    -drive file="${vmBaseDir}/${vmDisk}",format=qcow2,if=virtio ${vmExtraDisk} \
     -cpu ${cpuType} \
     -smp cpus=${vmCpu},cores=1,maxcpus=${maxCpu} \
     -m ${vmMem} \
@@ -134,14 +134,14 @@ vm_clone_disk() {
   local vmSrcCount=$(ps -A -o args | grep qemu-system-${vmSystemType} | grep -v grep | grep "${vmSrcDir}/" | wc -l)
   [ ${vmSrcCount} -ne 0 ] && usage "can't clone a running vm"
   . ${vmSrcDir}/${vmSrc}.conf
-  [ -f "${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDisk}"
-  chmod a-w "${vmDisk}"
-  local vmDestDir="${vmBaseDir}/${vmDestGroup}/${vmDest}"
+  [ -f "${vmBaseDir}/${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDisk}"
+  chmod a-w "${vmBaseDir}/${vmDisk}"
+  local vmDestDir="${vmDestGroup}/${vmDest}"
   local vmDestDiskCount=0
-  while [ -f "${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}" ] ; do vmDestDiskCount=$((vmDestDiskCount+1)) ; done
+  while [ -f "${vmBaseDir}/${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}" ] ; do vmDestDiskCount=$((vmDestDiskCount+1)) ; done
   local vmDestDisk="${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}"
-  mkdir -p "${vmDestDir}" || usage "unable to create ${vmDestDir}"
-  qemu-img create -q -f qcow2 -b "${vmDisk}" "${vmDestDisk}" >/dev/null >&2
+  mkdir -p "${vmBaseDir}/${vmDestDir}" || usage "unable to create ${vmBaseDir}/${vmDestDir}"
+  qemu-img create -q -f qcow2 -b "${vmBaseDir}/${vmDisk}" "${vmBaseDir}/${vmDestDisk}" >/dev/null >&2
   echo "${vmDestDisk}"
 }
 

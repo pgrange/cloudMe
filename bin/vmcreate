@@ -65,7 +65,6 @@ shift $(($OPTIND-1))
 
 if [ $adjust -eq 0 ]
 then
-  #vmDisk=$(vm_disk_create ${vmName} ${vmCreateGroup} "" ${vmCreateDiskSize})
   vm_create ${vmName} ${vmCreateGroup} "" ${isoName}
 else
   [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
@@ -73,7 +72,7 @@ else
 vmName=${vmName}
 vmMem=${vmMem}
 vmCpu=${vmCpu}
-vmDisk=${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
+vmDisk=${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
 EOF
 # vmCpuCap=${vmCpuCap}
 fi
