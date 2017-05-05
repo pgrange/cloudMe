@@ -10,3 +10,13 @@ grep "^allow all$" /etc/qemu/bridge.conf >/dev/null || echo "allow all" >> /etc/
 chown -R root:kvm /etc/qemu
 chmod 750 /etc/qemu
 chmod 640 /etc/qemu/bridge.conf
+
+# fixing broken permissions on some distributions
+bridge_helper=
+locate=$(which locate 2>/dev/null)
+[ $? -eq 0 ] && bridge_helper=$(locate qemu-bridge-helper)
+[ -z "${bridge_helper}" -a -f /usr/lib/qemu/qemu-bridge-helper ] && bridge_helper=/usr/lib/qemu/qemu-bridge-helper
+if [ -n "${bridge_helper}" ] ; then
+  is_sticky=$(ls -l ${bridge_helper} | cut -c 4)
+  [ ${is_sticky} == "s" ] || chmod u+s ${bridge_helper}
+fi
