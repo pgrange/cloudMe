@@ -9,6 +9,12 @@ x = canceled
 
 new ideas are added on top of the list
 
+... tools rationalization
+    ... vminventory + vmrunning => vminventory (when not --list as $1, outputs vmrunning) (check other ansible dynamic inventories options)
+    ... vmssh + vmconsole + vmmanage => vmssh ($0 [ -c | -m ] host|ip [cmd]) (ssh to host / -c connects to vm console / -m connects to qemu console)
+    ... vmstop + vm => vmmanage ( $0 machine [ -g group] starts a vm and connects / $0 -s [ machine | -g group ] [-d] stops VM or group (-d destroys)
+    ... vmcreate + vmtemplate => vmtemplate defaults specs for all actual options (set at instantiation) ( $0 name -d | -i = creates template -d from download and -i from iso)
+    ... vminstantiate + vmrun => vmrun ($0 -f|-g [ -m specs... ] -b) ( -f starts from specfile / -g start existing group / -g -m starts specline in group / -b background)
 ... verify gl capability before using
 vvv make downloadable templates with nocloud key
 >>> change name
