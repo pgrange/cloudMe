@@ -4,6 +4,7 @@ usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) [ --list | -h ]
   this tool is intended to be used as inventory by ansible, ansible-playbook...
+  but if you don't pass any option, you will have a list of running VMs
   --list : outputs json inventory
   -h : display this help
   ">&2
@@ -19,15 +20,8 @@ libName=cm_lib
 
 groupName="*"
 subGroupName="*"
-[ "$1" == "-h" ] && usage
 
-if [ $# -eq 0 ] ; then
-  echo "$(basename $0) is ment to be called by ansible with the --list argument" >&2
-  exit 1
-fi
-
-if [ "$1" == "--list" ] ; then
-
+inventory() {
   echo "{"
   previous_group=
   previous_type=
@@ -95,5 +89,16 @@ if [ "$1" == "--list" ] ; then
   fi
 
   echo "}"
+}
 
-fi
+case "$1" in
+  "--list")
+    inventory
+    ;;
+  "")
+    vm_running "${groupName}" "${subGroupName}"
+    ;;
+  "-h")
+    usage
+    ;;
+esac

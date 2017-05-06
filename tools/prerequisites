@@ -11,3 +11,8 @@ tst() {
 tst "which qemu-system-$(uname -m)" "qemu"
 tst "which dnsmasq" "dnsmasq"
 tst "which spicy" "spicy"
+
+for oldFile in bin/vmrunning
+do
+  [ -f /usr/local/${oldFile} ] && rm /usr/local/${oldFile} || echo -n
+done
