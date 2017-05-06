@@ -9,6 +9,7 @@ x = canceled
 
 new ideas are added on top of the list
 
+!!! every time you use make, you reset any configuration that has been made
 >>> tools rationalization
     vvv vminventory + vmrunning => vminventory (when not --list as $1, outputs vmrunning) (check other ansible dynamic inventories options)
     ... vmssh + vmconsole + vmmanage => vmssh ($0 [ -c | -m ] host|ip [cmd]) (ssh to host / -c connects to vm console / -m connects to qemu console)
