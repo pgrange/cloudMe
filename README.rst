@@ -7,9 +7,9 @@ TL;DR
 
 nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qemu and written in bash.
 
-To create a template and instanciate 5 times this template ::
+To get a template and instanciate 5 times this template ::
 
- vmcreate -n debian8 -i debian-8.6.0-amd64-netinst.iso
+ vmtemplate debian8
  vminstantiate -n debian8 -C 5
 
 Presentation
