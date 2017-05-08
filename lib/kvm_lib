@@ -49,7 +49,7 @@ vm_run() {
   [ -f "${isoName}" ] && isoOpt="-cdrom ${isoName}"
   [ "${isoName} " == "none " ] && isoOpt=""
 
-  local vmNoGui="-display sdl,gl=on -vga virtio -no-quit"
+  local vmNoGui="-display sdl -vga virtio -no-quit"
   [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
   local spicePort=$(free_port 1)
