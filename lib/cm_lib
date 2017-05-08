@@ -18,7 +18,6 @@ vmSubGroup=${vmDefaultSubGroup}
 
 isoDir="$HOME/Documents/distribs/linux"
 
-netInterface=bond0
 bridgeInterface=bridge0
 bridgeAddress=192.168.1.1/24
 bridgeNet=192.168.1.0/24
