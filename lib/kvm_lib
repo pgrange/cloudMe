@@ -95,15 +95,13 @@ vm_run() {
 }
 
 vm_mac_gen() {
-  local uuid=$(uuidgen)
-  echo ${uuid} | sed -r 's/-//g;s/^(.{6}).*/005056\1/;s/(..)/\1:/g;s/:$//'
+  echo $(uuidgen) | sed -r 's/-//g;s/^(.{6}).*/005056\1/;s/(..)/\1:/g;s/:$//'
 }
 
 vm_get_mac() {
   local vmName=$1
 
-  pgrep -f qemu-system-${vmSystemType} -a | grep " .name ${vmName}" \
-    && pgrep -f qemu-system-${vmSystemType} -a | grep " .name ${vmName}" | sed 's/.*macaddr=//;s/ .*$//'
+  pgrep -f qemu-system-${vmSystemType} -a | grep " .name ${vmName}" | sed 's/.*macaddr=//;s/ .*$//'
 }
 
 vm_create() {
@@ -247,7 +245,7 @@ EOF
 is_vm_running() {
   local vmName=$1
 
-  vmIsRunning=$(vm_running | grep "^${vmName} " | wc -l)
+  vmIsRunning=$(vm_running "*" "*" | grep "^${vmName} " | wc -l)
   echo ${vmIsRunning}
 }
 
