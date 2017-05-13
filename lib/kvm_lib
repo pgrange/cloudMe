@@ -110,9 +110,9 @@ vm_create() {
   local vmType=$3
   local isoName=$4
 
-  [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
+  [ -f ${vmBaseDir}/${vmGroup}/${vmType}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}
   vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
-  cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
+  cat > ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}/${vmName}.conf <<EOF
 vmName=${vmName}
 vmMem=${vmMem}
 vmCpu=${vmCpu}
