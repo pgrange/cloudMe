@@ -42,7 +42,10 @@ shift $(($OPTIND-1))
 [ -n "${vmSubGroup}" ] && vmGroupType=${vmGroup}/${vmSubGroup} || vmGroupType=${vmGroup}
 [ -d ${vmBaseDir}/${vmGroupType}/${vmName} ] || usage "no such VM in group ${vmGroupType}"
 
-[ ${vmGroup} == ${vmCreateGroup} ] && chmod +w ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.img
+if [ ${vmGroup} == ${vmCreateGroup} ] ; then
+  eval $(grep "^vmDisk=" ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf)
+  chmod +w ${vmBaseDir}/${vmDisk}
+fi
 
 vmIsRunning=$(is_vm_running ${vmName})
 [ ${vmIsRunning} -eq 1 -a "${guiMode}" == "gui" ] && usage "Machine is already running headless. Can't connect to console."
