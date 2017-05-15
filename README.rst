@@ -9,7 +9,7 @@ nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qem
 
 To get a template and instanciate 5 times this template ::
 
- vmtemplate debian8
+ vmtemplate -d debian8
  vminstantiate -n debian8 -C 5
 
 Presentation
@@ -84,7 +84,7 @@ Everything starts with a template.
 
 You first need to have an ISO of the system you want to install (ex: archlinux.iso). You then create a VM using this ISO ::
 
- ./vmcreate -n archlinux -i archlinux.iso
+ ./vmtemplate -c archlinux -i archlinux.iso
 
 Once the machine created, it will start and you will have to make your template corresponding to the following standards :
 
@@ -101,7 +101,7 @@ Template downloading
 
 You can download existing templates using this ::
 
- ./vmtemplate archlinux
+ ./vmtemplate -d archlinux
 
 available templates can be listed with -h option
 
@@ -201,23 +201,18 @@ vm - run and connect to a VM
 
 
 
-vmcreate - VM creation
-----------------------
-
-
-
-vminstantiate - making clones
------------------------------
-
-
-
-vmrun - run all the VMs of a group
+vmtemplate - VM creation and download
 -------------------------------------
 
 
 
-vmrunning - list all the running guests on the host
----------------------------------------------------
+vmrun - run all the VMs of a group
+----------------------------------
+
+
+
+vminventory - list all the running guests on the host
+-----------------------------------------------------
 
 
 

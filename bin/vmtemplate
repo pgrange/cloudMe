@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
 
-templates="archlinux debian8 centos7"
-templates_details="
-archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;07bd89e3244b92a27abc7485d56e46b8;15
-debian8;http://n0vember.free.fr/nocloud/templates/debian8;18355f4ce9673be5523f831f062eea28;19
-centos7;http://n0vember.free.fr/nocloud/templates/centos7;0ead1ad701408f5da7dceb48624adf8f;12
-"
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) <TEMPLATE_NAME>
-  TEMPLATE_NAME : one of ${templates}
+  echo "usage : $(basename $0) -d TEMPLATE_NAME
+   or : $(basename $0) -c TEMPLATE_NAME -i ISO_NAME
+  -d : download a template. TEMPLATE_NAME is one of ${vmTemplates}
+  -c : create a template ou t of iso
+  -i : specify isoName
   -h : display this help" >&2
   exit
 }
@@ -21,73 +18,100 @@ libName=cm_lib
 [ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
-while getopts h name
+vmTemplate=
+downloadMode=0
+createMode=0
+isoName=
+while getopts d:c:i:h name
 do
   case $name in
-    h) usage ;;
+    d)
+      downloadMode=1
+      vmTemplate=$OPTARG
+      ;;
+    c)
+      createMode=1
+      vmTemplate=$OPTARG
+      ;;
+    i)
+      isoName=$OPTARG
+      [ -f "${isoDir}/${isoName}" -o -f "${isoName}" ] || usage "can't find ${isoName}"
+      ;;
+    h)
+      usage
+      ;;
   esac
 done
 shift $(($OPTIND-1))
 
-template=$1
-echo ${templates} | tr " " "\n" | grep "^${template}$" >/dev/null || usage "unknown template"
-template_base_url=$(echo "${templates_details}" | grep "^${template};" | cut -d";" -f 2)
-template_base_md5=$(echo "${templates_details}" | grep "^${template};" | cut -d";" -f 3)
-template_base_num=$(echo "${templates_details}" | grep "^${template};" | cut -d";" -f 4)
-template_dir=${vmBaseDir}/${vmCreateGroup}/${template}
+[ ${createMode} -eq 1 -a ${downloadMode} -eq 1 ] && usage "You can't create and download at the same time. You've got to chose."
+[ ${createMode} -eq 0 -a ${downloadMode} -eq 0 ] && usage "What do you want ? Create or download ?"
+[ ${createMode} -eq 1 -a -z "${isoName}" ] && usage "You must specify an iso to create a template."
 
-[ -d "${template_dir}" ] && usage "you already have a template called ${template}"
-mkdir -p ${template_dir}/${template}.tmp
-cd ${template_dir}
-log "fetching ${template}.conf"
-curl -sO ${template_base_url}/${template}.conf
-log "checking compression"
-curl -sO ${template_base_url}/compression
-compression_mode=$(cat compression)
-rm compression
-ext=
-decomp="cat"
-case ${compression_mode} in
-  xz)
-    ext=".xz"
-    decomp="xz -d"
-    ;;
-  gzip)
-    ext=".gz"
-    decomp="gzip -d"
-    ;;
-esac
-log "fetching image $((${template_base_num}+1)) chunks"
-for num in $(seq -f "%03g" 0 ${template_base_num})
-do
-  log "  ${template}.img.${num}... "
-  curl -s -o ${template}.tmp/${template}.img.${num}${ext} ${template_base_url}/${template}.img/${template}.img.${num}${ext}
-done
-. ${template}.conf
-log "concatenate chunks in ${vmDisk}"
-cat ${template}.tmp/${template}.img.* | ${decomp} >> ${vmBaseDir}/${vmDisk}
-rm -r ${template}.tmp
+if [ ${createMode} -eq 1 ] ; then
+  vm_create ${vmName} ${vmCreateGroup} "" ${isoName}
+fi
 
-log "checking md5"
-md5=$(cat ${vmBaseDir}/${vmDisk} | md5sum | sed 's/ .*//')
-[ "${md5}" == "${template_base_md5}" ] || usage "checkum does not match (got ${md5})"
+if [ ${downloadMode} -eq 1 ] ; then
+  echo ${vmTemplates} | tr " " "\n" | grep "^${vmTemplate}$" >/dev/null || usage "unknown template"
+  vmTemplateBaseUrl=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 2)
+  vmTemplateBaseMd5=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 3)
+  vmTemplateBaseNum=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 4)
+  vmTemplateDir=${vmBaseDir}/${vmCreateGroup}/${vmTemplate}
 
-log "starting template"
-vm_run ${template} ${vmCreateGroup} "none"
-vmIp=$(vm_ip ${template} | tr ' ' '\n' | sort -u | tail -1)
-vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
-while [ ${vmSshOpen} -ne 0 ]
-do
-  sleep 1
+  [ -d "${vmTemplateDir}" ] && usage "you already have a template called ${vmTemplate}"
+  mkdir -p ${vmTemplateDir}/${vmTemplate}.tmp
+  cd ${vmTemplateDir}
+  log "fetching ${vmTemplate}.conf"
+  curl -sO ${vmTemplateBaseUrl}/${vmTemplate}.conf
+  log "checking compression"
+  curl -sO ${vmTemplateBaseUrl}/compression
+  compression_mode=$(cat compression)
+  rm compression
+  ext=
+  decomp="cat"
+  case ${compression_mode} in
+    xz)
+      ext=".xz"
+      decomp="xz -d"
+      ;;
+    gzip)
+      ext=".gz"
+      decomp="gzip -d"
+      ;;
+  esac
+  log "fetching image $((${vmTemplateBaseNum}+1)) chunks"
+  for num in $(seq -f "%03g" 0 ${vmTemplateBaseNum})
+  do
+    log "  ${vmTemplate}.img.${num}... "
+    curl -s -o ${vmTemplate}.tmp/${vmTemplate}.img.${num}${ext} ${vmTemplateBaseUrl}/${vmTemplate}.img/${vmTemplate}.img.${num}${ext}
+  done
+  . ${vmTemplate}.conf
+  log "concatenate chunks in ${vmDisk}"
+  cat ${vmTemplate}.tmp/${vmTemplate}.img.* | ${decomp} >> ${vmBaseDir}/${vmDisk}
+  rm -r ${vmTemplate}.tmp
+
+  log "checking md5"
+  md5=$(cat ${vmBaseDir}/${vmDisk} | md5sum | sed 's/ .*//')
+  [ "${md5}" == "${vmTemplateBaseMd5}" ] || usage "checkum does not match (got ${md5})"
+
+  log "starting template"
+  vm_run ${vmTemplate} ${vmCreateGroup} "none"
+  vmIp=$(vm_ip ${vmTemplate} | tr ' ' '\n' | sort -u | tail -1)
   vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
-done
-log "sending public keys"
-ls ~/.ssh/*.pub >/dev/null 2>&1 || usage "you don't have ssh keys"
-mkdir -p /tmp/nocloud.$$/${template}
-cp ${realDir}/../etc/nocloud /tmp/nocloud.$$/${template}
-chmod 600 /tmp/nocloud.$$/${template}/nocloud
-cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -l root -i /tmp/nocloud.$$/${template}/nocloud ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
-rm /tmp/nocloud.$$/${template}/nocloud
+  while [ ${vmSshOpen} -ne 0 ]
+  do
+    sleep 1
+    vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
+  done
+  log "sending public keys"
+  ls ~/.ssh/*.pub >/dev/null 2>&1 || usage "you don't have ssh keys"
+  mkdir -p /tmp/nocloud.$$/${vmTemplate}
+  cp ${realDir}/../etc/nocloud /tmp/nocloud.$$/${vmTemplate}
+  chmod 600 /tmp/nocloud.$$/${vmTemplate}/nocloud
+  cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -l root -i /tmp/nocloud.$$/${vmTemplate}/nocloud ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
+  rm /tmp/nocloud.$$/${vmTemplate}/nocloud
 
-log "stopping vm"
-vm_ssh ${vmIp} poweroff >/dev/null 2>&1
+  log "stopping vm"
+  vm_ssh ${vmIp} poweroff >/dev/null 2>&1
+fi
