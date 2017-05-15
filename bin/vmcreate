@@ -6,7 +6,6 @@ usage() {
   -n <VM_NAME> : sets the name of the new VM to create (mandatory)
   -m <VM_MEM> : RAM amount in MB (default ${vmMem})
   -c <VM_CPU> : number of CPU cores (default ${vmCpu})
-  -C <VM_CPU_CAP> : percentage of usage of physical CPU (default ${vmCpuCap}) # not yet implemented
   -d <DISK_SIZE> : disk allocation for the VM in GB (default ${vmCreateDiskSize})
   -a : VM will not be created. Parameters will be adjusted (does not affect DISK_SIZE yet)
   -i <ISO_FILE> : name of an iso to mount (absolute path or found in ${isoDir}) (mandatory)
@@ -38,10 +37,6 @@ do
       vmCpu="$OPTARG"
       [ $(nonNumeric ${vmCpu}) -eq 1 ] && usage "-c needs numeric argument"
       ;;
-#    C)
-#      vmCpuCap="$OPTARG"
-#      [ $(nonNumeric ${vmCpuCap}) -eq 1 ] && usage "-C needs numeric argument"
-#      ;;
     d)
       vmCreateDiskSize="$OPTARG"
       [ $(nonNumeric ${vmCreateDiskSize}) -eq 1 ] && usage "-d needs numeric argument"
@@ -74,5 +69,4 @@ vmMem=${vmMem}
 vmCpu=${vmCpu}
 vmDisk=${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
 EOF
-# vmCpuCap=${vmCpuCap}
 fi
