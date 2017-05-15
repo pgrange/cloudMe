@@ -2,7 +2,7 @@
 
 templates="archlinux debian8 centos7"
 templates_details="
-archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;71f4f44057d8d9b32be15edf25ca595d;13
+archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;07bd89e3244b92a27abc7485d56e46b8;15
 debian8;http://n0vember.free.fr/nocloud/templates/debian8;18355f4ce9673be5523f831f062eea28;19
 centos7;http://n0vember.free.fr/nocloud/templates/centos7;0ead1ad701408f5da7dceb48624adf8f;12
 "
