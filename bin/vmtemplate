@@ -73,8 +73,13 @@ md5=$(cat ${vmBaseDir}/${vmDisk} | md5sum | sed 's/ .*//')
 
 log "starting template"
 vm_run ${template} ${vmCreateGroup} "none"
-vmIp=$(vm_ip ${template})
-set -x
+vmIp=$(vm_ip ${template} | tr ' ' '\n' | sort -u | tail -1)
+vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
+while [ ${vmSshOpen} -ne 0 ]
+do
+  sleep 1
+  vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
+done
 log "sending public keys"
 ls ~/.ssh/*.pub >/dev/null 2>&1 || usage "you don't have ssh keys"
 mkdir -p /tmp/nocloud.$$/${template}
