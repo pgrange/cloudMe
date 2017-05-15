@@ -4,10 +4,6 @@ usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -n <VM_NAME> -i <ISO_FILE> [options]
   -n <VM_NAME> : sets the name of the new VM to create (mandatory)
-  -m <VM_MEM> : RAM amount in MB (default ${vmMem})
-  -c <VM_CPU> : number of CPU cores (default ${vmCpu})
-  -d <DISK_SIZE> : disk allocation for the VM in GB (default ${vmCreateDiskSize})
-  -a : VM will not be created. Parameters will be adjusted (does not affect DISK_SIZE yet)
   -i <ISO_FILE> : name of an iso to mount (absolute path or found in ${isoDir}) (mandatory)
   -h : display this help" >&2
   exit
@@ -23,26 +19,11 @@ libName=cm_lib
 vmName=
 isoName=
 adjust=0
-while getopts n:m:c:C:d:ai:h name
+while getopts n:i:h name
 do
   case $name in
     n)
       vmName="$OPTARG"
-      ;;
-    m)
-      vmMem="$OPTARG"
-      [ $(nonNumeric ${vmMem}) -eq 1 ] && usage "-m needs numeric argument"
-      ;;
-    c)
-      vmCpu="$OPTARG"
-      [ $(nonNumeric ${vmCpu}) -eq 1 ] && usage "-c needs numeric argument"
-      ;;
-    d)
-      vmCreateDiskSize="$OPTARG"
-      [ $(nonNumeric ${vmCreateDiskSize}) -eq 1 ] && usage "-d needs numeric argument"
-      ;;
-    a)
-      adjust=1
       ;;
     i)
       isoName="$OPTARG"
@@ -58,15 +39,4 @@ shift $(($OPTIND-1))
 [ -z "$vmName" ] && usage "-n <VM_name> is mandatory"
 [ -z "$isoName" ] && usage "-i <ISO_file> is mandatory"
 
-if [ $adjust -eq 0 ]
-then
-  vm_create ${vmName} ${vmCreateGroup} "" ${isoName}
-else
-  [ -f ${vmBaseDir}/${vmCreateGroup}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmCreateGroup}/${vmName}
-  cat > ${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}.conf <<EOF
-vmName=${vmName}
-vmMem=${vmMem}
-vmCpu=${vmCpu}
-vmDisk=${vmCreateGroup}/${vmName}/${vmName}.${vmDiskExt}
-EOF
-fi
+vm_create ${vmName} ${vmCreateGroup} "" ${isoName}

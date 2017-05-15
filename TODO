@@ -15,8 +15,8 @@ new ideas are added on top of the list
     vvv vmssh => vmssh ($0 [ -c | -m ] host|ip [cmd]) (ssh to host )
     ... vmstop + vm + vmconsole + vmmanage => vmmanage ( $0 machine [ -g group] starts a vm and connects / $0 -s [ machine | -g group ] [-d] stops VM or group (-d destroys) -c connects to vm console / -m connects to qemu console
     >>> vmcreate + vmtemplate => vmtemplate defaults specs for all actual options (set at instantiation) ( $0 name -d | -i = creates template -d from download and -i from iso)
-        >>> reduce vmcreate options
-        ... merge
+        vvv reduce vmcreate options
+        >>> merge
     ... vminstantiate + vmrun => vmrun ($0 -f|-g [ -m specs... ] -b) ( -f starts from specfile / -g start existing group / -g -m starts specline in group / -b background)
 ... verify gl capability before using
 vvv make downloadable templates with nocloud key
