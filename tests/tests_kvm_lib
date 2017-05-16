@@ -125,20 +125,26 @@ test_vm_ssh_connects_to_vm() {
 
 ### vm_ip
 
-#test_vm_ip_returns_correct_ip() {
-#  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-#  vmIp=$(vm_ip ${vmName})
-#  assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname)" "ip address does not match the vm"
-#}
+test_vm_ip_returns_correct_ip() {
+  local template_name=archlinux
+  local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
+  vmIp=$(vm_ip ${vmName})
+  local actual_vm_name=$(vm_ssh ${vmIp} hostname)
+  while [ "${actual_vm_name}" == "${template_name}" ] ; do
+    sleep 1
+    actual_vm_name=$(vm_ssh ${vmIp} hostname)
+  done
+  assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname)" "ip address does not match the vm"
+}
 
 ### vm_name
 
-#test_vm_name_returns_correct_name() {
-#  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-#  vmIp=$(vm_ip ${vmName})
-#  vmNameRes=$(vm_name ${vmIp})
-#  assert_equals "$(vm_ssh ${vmNameRes} hostname | grep ${vmName})" "$(vm_ssh ${vmIp} hostname | grep ${vmName})" "ip address does not match the vm"
-#}
+test_vm_name_returns_correct_name() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  vmIp=$(vm_ip ${vmName})
+  vmNameRes=$(vm_name ${vmIp})
+  assert_equals "$(vm_ssh ${vmNameRes} hostname | grep ${vmName})" "$(vm_ssh ${vmIp} hostname | grep ${vmName})" "ip address does not match the vm"
+}
 
 ### vm_group
 
