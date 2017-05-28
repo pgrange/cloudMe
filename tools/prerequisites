@@ -16,3 +16,5 @@ for oldFile in bin/vmrunning bin/vmcreate
 do
   [ -f /usr/local/${oldFile} ] && rm /usr/local/${oldFile} || echo -n
 done
+
+echo "%kvm ALL=(ALL) NOPASSWD: /usr/local/sbin/vmnat" > /etc/sudoers.d/kvm-iptables

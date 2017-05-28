@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) [-d] source_port:vm:dest_port
+  will configure iptables to formard source_port to dest_port on vm (ip or name)
+  -d : drops the rule
+  -h : display this help
+  ">&2
+  exit
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+vmName=
+srcPort=
+dstPort=
+dropMode=0
+while getopts dh name
+do
+  case $name in
+    d) dropMode=1 ;;
+    h) usage ;;
+  esac
+done
+shift $(($OPTIND-1))
+
+[ $# -ne 1 ] && usage "nat specification is mandatory"
+
+[ $(id -u) -ne 0 ] && usage "you should run $(basename $0) as root and you're not, ${USER}"
+
+srcPort=$(echo "$1" | cut -d : -f 1)
+vmName=$(echo "$1" | cut -d : -f 2)
+dstPort=$(echo "$1" | cut -d : -f 3)
+
+vmIp=$(echo "${vmName}" | sed -r '/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/!d')
+[ -z "${vmIp}" ] && vmIp=$(vm_ip ${vmName})
+
+[ ${dropMode} -eq 0 ] && iptablesAddMode="-A" || iptablesAddMode="-D"
+[ ${dropMode} -eq 0 ] && iptablesInsMode="-I" || iptablesInsMode="-D"
+
+iptables ${iptablesInsMode} FORWARD -p tcp --dport ${dstPort} -d ${vmIp} -j ACCEPT
+iptables -t nat ${iptablesInsMode} PREROUTING -p tcp -m tcp --dport ${srcPort} -j DNAT --to-destination ${vmIp}:${dstPort}
