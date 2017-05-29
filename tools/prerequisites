@@ -17,6 +17,7 @@ do
   [ -f /usr/local/${oldFile} ] && rm /usr/local/${oldFile} || echo -n
 done
 
+# Grant kvm group the right to set port translations
 echo "%kvm ALL=(ALL) NOPASSWD: /usr/local/sbin/vmnat" > /etc/sudoers.d/kvm-iptables
 
 # initiate dhcp-hostsfile
