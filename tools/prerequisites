@@ -18,3 +18,8 @@ do
 done
 
 echo "%kvm ALL=(ALL) NOPASSWD: /usr/local/sbin/vmnat" > /etc/sudoers.d/kvm-iptables
+
+# initiate dhcp-hostsfile
+touch /usr/local/etc/nocloud-dhcp-hostsfile
+chmod 664 /usr/local/etc/nocloud-dhcp-hostsfile
+chown root:kvm /usr/local/etc/nocloud-dhcp-hostsfile
