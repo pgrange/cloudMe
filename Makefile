@@ -32,7 +32,7 @@ $(ETC):
 	$(INSTALL) $(CINSTALL_OPTS) $@ $(PREFIX)/$@
 
 system:
-	@echo +++ installing service
 	@tools/qemu-bridge
 	@tools/kvm-mod
+	@echo +++ installing service
 	@cd services && make
