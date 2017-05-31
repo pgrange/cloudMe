@@ -4,10 +4,8 @@ Documentation=man:dnsmasq
 After=network.target nss-lookup.target systemd-resolved.service nocloud-bridge.service
 
 [Service]
-Type=oneshot
 EnvironmentFile=/usr/local/etc/nocloud_net.conf
-ExecStart=/usr/bin/dnsmasq --listen-address=${bridgeIpAddress} --bind-interfaces --dhcp-range=${bridgeDhcpStart},${bridgeDhcpStop} --dhcp-hostsfile=/usr/local/etc/nocloud-dhcp-hostsfile
-RemainAfterExit=yes
+ExecStart=/usr/bin/env dnsmasq -k --listen-address=${bridgeIpAddress} --bind-interfaces --dhcp-range=${bridgeDhcpStart},${bridgeDhcpStop} --dhcp-hostsfile=/usr/local/etc/nocloud-dhcp-hostsfile
 
 [Install]
 WantedBy=multi-user.target
