@@ -165,27 +165,26 @@ usage() {
 
 # Formating
 
-color() {
-  local color=$1
-  shift
-  if [ -t 1 ] ; then echo -en "$color" ; fi
-  if [ $# -gt 0 ]
-  then
-    echo $*
-  else
-    cat
-  fi
-  if [ -t 1 ] ; then echo -en "$NOCOLOR" ; fi
+pretty_success() {
+  pretty_format "$GREEN" "\u2713" "$1"
+}
+
+pretty_failure() {
+  pretty_format "$RED" "\u2717" "$1"
 }
 
 pretty_format() {
   local color="$1"
   local pretty_symbol="$2"
   local alt_symbol="$3"
-  [ -t 1 ] && local term=true || local term=false
+  local term_utf8=false
+  if is_terminal && [[ "$LANG" =~ .*UTF-8.* ]]
+  then
+    term_utf8=true
+  fi
   (
     cat
-    if $term
+    if $term_utf8
     then
       echo -en " $pretty_symbol "
     else
@@ -194,12 +193,27 @@ pretty_format() {
   ) | color "$color"
 }
 
-pretty_success() {
-  pretty_format "$GREEN" "\u2713" "$1"
+color() {
+  _start_color() {
+    if is_terminal ; then echo -en "$color" ; fi
+  }
+  _stop_color() {
+    if is_terminal ; then echo -en "$NOCOLOR" ; fi
+  }
+  local color=$1
+  shift
+  _start_color
+  if [ $# -gt 0 ]
+  then
+    echo $*
+  else
+    cat
+  fi
+  _stop_color
 }
 
-pretty_failure() {
-  pretty_format "$RED" "\u2717" "$1"
+is_terminal() {
+  [ -t 1 ] || [[ "${FORCE_COLOR}" == true ]]
 }
 
 text_format() {
