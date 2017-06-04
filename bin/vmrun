@@ -4,10 +4,12 @@ stopSignal=SIGUSR1
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) -f <FILE> | -r <GROUP> [ -g ]
+  echo "usage : $(basename $0) -f <FILE> | -r <GROUP> [ -m specline ] [ -g ]
    or : $(basename $0) -s <GROUP>
   -f <FILE> : instanciate servers based on a configuration file. View documentation for file format.
-  -r : do not create new VMs and run the ones that had been previously kept in the specified group.
+  -r : do not create new VMs and run the ones that had been previously kept in the specified group
+       or those specified using -m option.
+  -m : specify a vm specification (as provided to -f option)
   -g : when running VMs have a GUI for each one
   -s : stop a running pf by sending it ${stopSignal} (see NOTE below)
   -h : display this help
@@ -43,6 +45,24 @@ stop_and_destroy_all() {
   exit
 }
 
+run_from_spec() {
+  local confFile=$1
+  local confLine
+  for confLine in $(cat ${confFile}) ; do
+    local vmName=$(echo "${confLine}" | cut -d : -f 1)
+    local vmCount=$(echo "${confLine}" | cut -d : -f 2)
+    local vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
+    local vmOpts=$(echo "${confLine}" | cut -d : -f 4 | tr ";" " ")
+    local vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup} "${vmOpts} ${guiOpt}")
+    local vm
+    local vms
+    for vm in $(echo "${vmSpawned}" | tr -s '\n ' '  ') ; do
+      vms="${vms} ${vm}"
+    done
+  done
+  echo "${vms}"
+}
+
 realMe=$(readlink -e $0)
 realDir=$(dirname ${realMe})
 libDir=../lib
@@ -52,12 +72,14 @@ libName=cm_lib
 
 vmName=
 guiOpt=
-while getopts f:r:s:gh name
+specLines=
+while getopts f:r:s:m:gh name
 do
   case $name in
     f) groupConfFile="$OPTARG" ;;
     r) groupStored="$OPTARG" ;;
     s) groupStop="$OPTARG" ;;
+    m) [ -n "${specLines}" ] && specLines="${specLines}\n$OPTARG" || specLines="$OPTARG" ;;
     g) guiOpt="gui" ;;
     h) usage ;;
   esac
@@ -69,6 +91,10 @@ optCount=0
 [ -z "${groupStored}" ] || optCount=$((optCount+1))
 [ -z "${groupStop}" ] || optCount=$((optCount+1))
 [ ${optCount} -ne 1 ] && usage "One (and only one) option must be specified."
+
+if [ -n "${specLines}" -a -z "${groupStored}" ] ; then
+  usage "you can't specify -m without specifying group name with -r"
+fi
 
 if [ -n "${groupStop}" ] ; then
   pkill -${stopSignal} -f "$(basename ${realMe}) -[rf] ${groupStop}"
@@ -97,33 +123,38 @@ if [ -n "${vms}" ] ; then
 fi
 
 if [ -n "${groupConfFile}" ] ; then
-  for confLine in $(cat ${groupConfFile}) ; do
-    vmName=$(echo "${confLine}" | cut -d : -f 1)
-    vmCount=$(echo "${confLine}" | cut -d : -f 2)
-    vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
-    vmOpts=$(echo "${confLine}" | cut -d : -f 4 | tr ";" " ")
-    vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup} "${vmOpts} ${guiOpt}")
-    for vm in $(echo "${vmSpawned}" | tr -s '\n ' '  ') ; do
-      log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
-      vms="${vms} ${vm}"
-    done
+  vms=$(run_from_spec ${groupConfFile})
+  for vm in ${vms}
+  do
+    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
   done
 fi
 
 if [ -n "${groupStored}" ] ; then
-  groups=$(ls ${vmBaseDir} | grep -v "${vmCreateGroup}")
-  echo ${groups} | tr ' ' '\n' | grep "^${vmGroup}$" >/dev/null || usage "${vmGroup} is no known group"
-  subGroups=$(ls ${vmBaseDir}/${vmGroup})
-  [ -z "${subGroups}" ] && usage "no subGroup for group ${vmGroup}"
-  for subGroup in ${subGroups}
-  do
-    for vmName in $(ls ${vmBaseDir}/${vmGroup}/${subGroup})
+  if [ -n "${specLines}" ] ; then
+    specFile=$(mktemp)
+    echo -e "${specLines}" > ${specFile}
+    vms=$(run_from_spec ${specFile})
+    rm ${specFile}
+    for vm in ${vms}
     do
-      vm_run ${vmName} ${vmGroup}/${subGroup} none ${guiOpt}
-      log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_group ${vmName}) group"
-      vms="${vms} ${vmName}"
+      log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
     done
-  done
+  else
+    groups=$(ls ${vmBaseDir} | grep -v "${vmCreateGroup}")
+    echo ${groups} | tr ' ' '\n' | grep "^${vmGroup}$" >/dev/null || usage "${vmGroup} is no known group"
+    subGroups=$(ls ${vmBaseDir}/${vmGroup})
+    [ -z "${subGroups}" ] && usage "no subGroup for group ${vmGroup}"
+    for subGroup in ${subGroups}
+    do
+      for vmName in $(ls ${vmBaseDir}/${vmGroup}/${subGroup})
+      do
+        vm_run ${vmName} ${vmGroup}/${subGroup} none ${guiOpt}
+        log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_group ${vmName}) group"
+        vms="${vms} ${vmName}"
+      done
+    done
+  fi
 fi
 
 vmsWithoutIp=${vms}
