@@ -10,7 +10,7 @@ nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qem
 To get a template and instanciate 5 times this template ::
 
  vmtemplate -d debian8
- vminstantiate -n debian8 -C 5
+ vmrun -g tst -m debian8:5:srv
 
 Presentation
 ============
@@ -113,7 +113,7 @@ Manual
 
 Once your template is good, you can use it to generate new VMs ::
 
- ./vminstantiate -n archlinux -C 2
+ ./vmrun -g tst -m archlinux:2:srv
 
 will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
 
@@ -122,12 +122,10 @@ In order to organize your VMs they are grouped. This is done using a two level h
 - groups will represent a kind of platform, a set of machines you use for a service.
 - types will be subgroups of servers that will group VMs by function.
 
-When nothing is specified, using vminstanciate, machines will be created in group "group" and of type "default".
-
 Using description file
 ----------------------
 
-If you want to automate the creation of a set of VMs, you can create description files. Each line matches a vminstantiate command line parameters. Those are separated by ":" and are in the following order :
+If you want to automate the creation of a set of VMs, you can create description files. Each line matches a vmrun -m command line parameters. Fields are separated by ":" and are in the following order :
 
 - template name
 - number of clones
@@ -159,7 +157,7 @@ This will create a server called db00 for the first line and two servers on the 
 
 The file (named pftest) is called with the following command ::
 
- vminstantiate -f pftest
+ vmrun -f pftest
 
 And so the machines will be in the pftest group.
 

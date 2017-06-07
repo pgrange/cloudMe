@@ -12,6 +12,7 @@ usage() {
   -m : specify a vm specification (as provided to -f option)
   -g : when running VMs have a GUI for each one
   -s : stop a running pf by sending it ${stopSignal} (see NOTE below)
+  -b : background mode. Just launcheds VM (with -f or -r) and exit.
   -h : display this help
   NOTE : SIGINT (or ^C) will stop all the managed VMs and will then destoy them. ${stopSignal} will stop and quit as well, but will leave the machiness in place for you to relaunch then at will (that's what the -r option is for)." >&2
   exit
@@ -73,7 +74,8 @@ libName=cm_lib
 vmName=
 guiOpt=
 specLines=
-while getopts f:r:s:m:gh name
+backgroundMore=0
+while getopts f:r:s:m:gbh name
 do
   case $name in
     f) groupConfFile="$OPTARG" ;;
@@ -81,6 +83,7 @@ do
     s) groupStop="$OPTARG" ;;
     m) [ -n "${specLines}" ] && specLines="${specLines}\n$OPTARG" || specLines="$OPTARG" ;;
     g) guiOpt="gui" ;;
+    b) backgroundMode=1 ;;
     h) usage ;;
   esac
 done
@@ -110,6 +113,7 @@ if [ -n "${groupStored}" ] ; then
 fi
 
 log "I will be managing the ${vmGroup} group"
+[ ${backgroundMode} -eq 1 ] && log "Background mode activated : I will quit when my VMs are up."
 
 trap 'stop_and_destroy_all' SIGINT SIGTERM
 trap 'stop_and_keep_all' ${stopSignal}
@@ -171,6 +175,12 @@ while [ -n "${vms}" ] ; do
         loopOperations=$((loopOperations+1))
       fi
     done
+  else
+    if [ ${backgroundMode} -eq 1 ] ; then
+      log "All of my machines are running."
+      log "I quit."
+      exit
+    fi
   fi
   for vm in ${vms} ; do
     if [ -z "$(vm_running "${vmGroup}" "*" | grep ${vm})" ] ; then
