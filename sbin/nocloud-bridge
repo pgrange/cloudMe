@@ -28,6 +28,7 @@ if [ "$1" == "start" ] ; then
   ip link set ${bridgeInterface} up
   ip addr add ${bridgeAddress} dev ${bridgeInterface}
   iptables_rules on
+  sysctl -q net.ipv4.conf.all.forwarding=1
 fi
 
 if [ "$1" == "stop" ] ; then
