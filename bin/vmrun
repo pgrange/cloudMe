@@ -49,7 +49,7 @@ stop_and_destroy_all() {
 run_from_spec() {
   local confFile=$1
   local confLine
-  for confLine in $(cat ${confFile}) ; do
+  for confLine in $(sed '/^ *$/d;s/ *#.*$//' ${confFile}) ; do
     local vmName=$(echo "${confLine}" | cut -d : -f 1)
     local vmCount=$(echo "${confLine}" | cut -d : -f 2)
     local vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
