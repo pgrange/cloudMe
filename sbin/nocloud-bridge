@@ -4,12 +4,33 @@ cd "$(dirname $0)/.."
 
 . etc/nocloud_net.conf
 
+iptables_rules() {
+  if [ "$1" == "on" ] ; then
+    insertRule="-I"
+    appendRule="-A"
+    newChain="-N"
+  else
+    insertRule="-D"
+    appendRule="-D"
+    newChain="-X"
+  fi
+  [ "$1" == "on" ] && iptables ${newChain} NOCLOUD
+  iptables ${insertRule} INPUT -i ${bridgeInterface} -j ACCEPT
+  iptables ${insertRule} FORWARD -j NOCLOUD
+  iptables ${insertRule} FORWARD -o ${bridgeInterface} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  iptables ${appendRule} NOCLOUD -i ${bridgeInterface} -j ACCEPT
+  iptables -t nat ${appendRule} POSTROUTING -s ${bridgeNet} ! -o ${bridgeInterface} -j MASQUERADE
+  [ "$1" != "on" ] && iptables ${newChain} NOCLOUD
+}
+
 if [ "$1" == "start" ] ; then
   ip link add name ${bridgeInterface} type bridge
   ip link set ${bridgeInterface} up
   ip addr add ${bridgeAddress} dev ${bridgeInterface}
+  iptables_rules on
 fi
 
 if [ "$1" == "stop" ] ; then
+  iptables_rules off
   ip link delete ${bridgeInterface}
 fi

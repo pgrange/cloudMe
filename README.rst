@@ -56,20 +56,6 @@ The configuration file /etc/qemu/bridge.conf is also created during installation
 
 Installation also configures the kvm_intel and vhost_net modules.
 
-firewalling
------------
-
-If you, as I do, use iptables on your machine, the bridge interface created by cmnet must be configured in order to access read network through the host ::
-
- sysctl -q net.ipv4.conf.all.forwarding=1
- iptables -I INPUT -i nocloud -j ACCEPT
- iptables -N fw-interfaces
- iptables -A FORWARD -j fw-interfaces
- iptables -A fw-interfaces -i nocloud -j ACCEPT
- iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o bond0 -j MASQUERADE
-
-If you change your configuration in /usr/local/bin/etc/nocloud_net.conf, you will need to adapt the above line (interface name, subnet...)
-
 Installation
 ============
 
