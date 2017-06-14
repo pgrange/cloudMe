@@ -74,7 +74,7 @@ libName=cm_lib
 vmName=
 guiOpt=
 specLines=
-backgroundMore=0
+backgroundMode=0
 while getopts f:r:s:m:gbh name
 do
   case $name in
