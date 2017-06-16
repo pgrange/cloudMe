@@ -150,11 +150,19 @@ EOF
 
 ### vm_group
 
+test_vm_group_returns_group() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  local vmGroup=$(vm_group ${vmName})
+  asset_equals "${test_group}" "${vmGroupe}"
+}
+
 ### vm_type
 
-### vm_console_port
-
-### vm_spice_port
+test_vm_type_returns_type() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  local vmType=$(vm_type ${vmName})
+  assert_equals "${test_type}" "${vmType}"
+}
 
 ### global
 
