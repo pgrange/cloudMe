@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+
+### vm_disk_create
+
+test_vm_disk_create_creates_disk() {
+  local diskName=$(vm_disk_create ${test_vm} ${test_group} ${test_type} 1)
+  assert "[ -f ${vmBaseDir}/${diskName} ]" "disk was not created"
+}
+
+test_vm_disk_create_creates_qcow_disk() {
+  local diskName=$(vm_disk_create ${test_vm} ${test_group} ${test_type} 1)
+  assert "file ${vmBaseDir}/${diskName} | grep 'QEMU QCOW Image'" "created file is not qcow"
+}
+
+test_vm_disk_create_does_not_duplicate_names() {
+  local diskName1=$(vm_disk_create ${test_vm} ${test_group} ${test_type} 1)
+  local diskName2=$(vm_disk_create ${test_vm} ${test_group} ${test_type} 1)
+  assert_not_equals "${diskName1}" "${diskName2}" "2 vm_disk_create calls returnes same file"
+}
+
+### vm_stop
+
+test_vm_stop_actually_stops_process() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  assert "vm_running ${test_group} ${test_type} | grep \"^${vmName} \"" "vm has not been created"
+  vm_stop ${vmName} ${test_group} ${test_type}
+  wait_for_vm_to_stop ${vmName}
+  assert_fail "vm_running ${test_group} ${test_type} | grep \"^${vmName} \"" "vm has not been stopped"
+}
+
+### vm_run
+
+test_vm_run_launches_a_vm() {
+  local diskName=$(vm_disk_create ${test_vm} ${test_group} ${test_type} 1)
+  cat > ${vmBaseDir}/${test_group}/${test_type}/${test_vm}/${test_vm}.conf << EOF
+vmName=${test_vm}
+vmMem=256
+vmCpu=1
+vmDisk=${diskName}
+EOF
+  vm_run ${test_vm} ${test_group}/${test_type} >&2
+  assert "vm_running ${test_group} ${test_type} | grep \"^${test_vm} \"" "vm has not been created"
+}
+
+### vm_mac_gen
+
+test_vm_mac_gen_generates_mac_address() {
+  assert_equals "5" "$(vm_mac_gen | sed -r 's/[^:]//;s/(.)/\1\n/g' | grep -c :)" "generated strings is no mac address"
+  assert_equals "1" "$(vm_mac_gen | sed -r '/^00:50:56/!d' | wc -l)" "generated strings is no vm mac address"
+}
+
+### vm_get_mac
+
+test_vm_get_mac_gets_real_mac() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  local vmRealMac=$(vm_ssh ${vmName} ip a show | sed -r '/link\/ether/!d;s/.*link\/ether ([^ ]*) brd.*/\1/' | sort | uniq)
+  local vmGetMac=$(vm_get_mac ${vmName})
+  assert "grep ${vmGetMac} <(echo -e ${vmRealMac})" "mac address does not appear on machine"
+}
+
+### vm_create
+
+test_vm_create_actually_creates_a_machine() {
+  vm_create ${test_vm} ${test_group} ${test_type} "" no
+  assert "vm_running ${test_group} ${test_type} | grep \"^${test_vm} \"" "vm has not been created"
+}
+
+### vm_clone_disk
+
+test_vm_clone_disk_generates_a_qcow_disk_based_one_another() {
+  local diskName=$(vm_disk_create ${test_vm} ${test_group} ${test_type} 1)
+  cat > ${vmBaseDir}/${test_group}/${test_type}/${test_vm}/${test_vm}.conf << EOF
+vmName=${test_vm}
+vmMem=256
+vmCpu=1
+vmDisk=${diskName}
+EOF
+  diskClone=$(vm_clone_disk ${test_group}/${test_type} ${test_vm} ${test_group}/${test_type} ${test_vm}2)
+  local expectedFile="${vmBaseDir}/${diskClone}: QEMU QCOW Image (v3), has backing file (path $(echo ${vmBaseDir}/${diskName} | sed -r 's/^(.{95}).*/\1/')),"
+  assert "file ${vmBaseDir}/${diskClone} | grep \"${expectedFile}\"" "clone is not based on initial disk"
+  chmod +w ${vmBaseDir}/${diskName}
+}
+
+### vm_running
+
+ test_vm_running_retrives_launched_vm() {
+   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+   assert_equals "1" "$(vm_running ${test_group} ${test_type} | grep "^${vmName} ${test_group}/${test_type}" | wc -l)" "vm has not been retrieved"
+ }
+
+ ### vm_configure
+
+ test_vm_configure_sets_hostname() {
+   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+   vm_ssh ${vmName} true
+   sleep 1
+   assert_equals "${vmName}" "$(vm_ssh ${vmName} cat /etc/hostname)" "host name has not been set"
+ }
+
+ ### vm_instantiate
+
+ test_vm_instantiate_creates_and_launches_machine() {
+   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+   assert "vm_running ${test_group} ${test_type} | grep \"^${vmName} \"" "vm has not been created"
+ }
+
+ ### is_vm_running
+
+ test_is_vm_running_returns_1_when_vm_is_running() {
+   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+   assert_equals "1" "$(is_vm_running ${vmName})" "vm is not seen"
+ }
+
+ test_is_vm_running_returns_0_when_vm_is_not_running() {
+   assert_equals "0" "$(is_vm_running this_would_surely_be_bad_luck_if_a_vm_was_running_with_that_name)" "non running vm is seen"
+ }
+
+ ### vm_ssh
+
+ test_vm_ssh_connects_to_vm() {
+   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+   vmIp=$(vm_ip ${vmName})
+   assert "vm_ssh ${vmIp} hostname | grep \"^${vmName}$\"" "did not connect to the vm"
+ }
+
+ ### vm_ip
+
+ test_vm_ip_returns_correct_ip() {
+   local template_name=archlinux
+   local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
+   vmIp=$(vm_ip ${vmName})
+   local actual_vm_name=$(vm_ssh ${vmIp} hostname)
+   while [ "${actual_vm_name}" == "${template_name}" ] ; do
+     sleep 1
+     actual_vm_name=$(vm_ssh ${vmIp} hostname)
+   done
+   assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname)" "ip address does not match the vm"
+ }
+
+ ### vm_name
+
+ test_vm_name_returns_correct_name() {
+   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+   vmIp=$(vm_ip ${vmName})
+   maxwait=5
+   while [ "$(vm_name ${vmIp})" == "archlinux" -a $maxwait -gt 0 ] ; do sleep 1 ; maxwait=$((wait-1)); done
+   vmNameRes=$(vm_name ${vmIp})
+   assert_equals "${vmNameRes}" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
+ }
+
+### vm_group
+
+test_vm_group_returns_group() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  local vmGroup=$(vm_group ${vmName})
+  asset_equals "${test_group}" "${vmGroupe}"
+}
+
+### vm_type
+
+test_vm_type_returns_type() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  local vmType=$(vm_type ${vmName})
+  assert_equals "${test_type}" "${vmType}"
+}
+
+### global
+
+setup() {
+  realDir=.
+  libDir=../lib
+  libName=cm_lib
+  [ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+  [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+  if [ -d ${vmBaseDir}/${test_group} ] ; then
+    echo "testing group already exists" >&2
+    exit 1
+  fi
+}
+
+teardown() {
+  vms=$(vm_running ${test_group} ${test_type} | sed 's/ .*//' | xargs)
+  [ -n "${vms}" ] && for vm in ${vms}
+  do
+    vm_stop ${vm} ${test_group} ${test_type}
+  done
+  [ -d ${vmBaseDir}/${test_group} ] && rm -r ${vmBaseDir}/${test_group}
+  while (pgrep -f qemu-system-x86_64 -a | grep ${test_group}/${test_type} >/dev/null) ; do sleep 1 ; done
+}
+
+wait_for_vm_to_stop() {
+  local vm_to_wait_for=$1
+  local wait_count=30
+  local vm_count=$(vm_running ${test_group} ${test_type} | grep "^${vm_to_wait_for} " | wc -l)
+  while [ ${wait_count} -gt 0 -a ${vm_count} -eq 1 ]
+  do
+    sleep 1
+    vm_count=$(vm_running ${test_group} ${test_type} | grep "^${vm_to_wait_for} " | wc -l)
+    wait_count=$((wait_count+1))
+  done
+}
+
+test_group=group_$$_${RANDOM}
+test_type=type_$$_${RANDOM}
+test_vm=vm_$$_${RANDOM}
