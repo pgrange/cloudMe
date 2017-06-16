@@ -61,7 +61,7 @@ test_vm_get_mac_gets_real_mac() {
 ### vm_create
 
 test_vm_create_actually_creates_a_machine() {
-  vm_create ${test_vm} ${test_group} ${test_type}
+  vm_create ${test_vm} ${test_group} ${test_type} "" no
   assert "vm_running ${test_group} ${test_type} | grep \"^${test_vm} \"" "vm has not been created"
 }
 
