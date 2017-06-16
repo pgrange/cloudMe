@@ -115,6 +115,9 @@ vm_create() {
   local vmGroup=$2
   local vmType=$3
   local isoName=$4
+  local guiNoGui=$5
+
+  local gui="gui"
 
   [ -f ${vmBaseDir}/${vmGroup}/${vmType}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}
   vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
@@ -125,7 +128,8 @@ vmCpu=${vmCpu}
 vmDisk=${vmDisk}
 EOF
   [ -n "${vmType}" ] && vmGroup="${vmGroup}/${vmType}"
-  vm_run ${vmName} ${vmGroup} "${isoName}" gui
+  [ "${guiNoGui}" == "no" ] && gui=""
+  vm_run ${vmName} ${vmGroup} "${isoName}" ${gui}
 }
 
 vm_clone_disk() {
