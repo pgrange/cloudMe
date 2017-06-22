@@ -6,8 +6,9 @@ nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qem
 
 To get a template and instanciate 5 times this template :
 
- vmtemplate debian8
- vminstantiate -n debian8 -C 5
+ sudo make
+ vmtemplate -d debian8
+ vmrun -g test -m debian8:5:deb
 
 == Presentation
 
@@ -42,25 +43,12 @@ The solution is based on bridging capability. Setup needs root access and I want
 
 During installation, 2 services are created :
 
-- nocloud-bridge which creates a bridge interface
+- nocloud-bridge which creates a bridge interface and sets up firewalling rules
 - nocloud-dnsmasq brings a dnsmasq server up to serve DHCP and DNS to the machines
 
 The configuration file /etc/qemu/bridge.conf is also created during installation. It allows qemu to bring machines interfaces connected to the bridge inteface.
 
 Installation also configures the kvm_intel and vhost_net modules.
-
-=== firewalling
-
-If you, as I do, use iptables on your machine, the bridge interface created by cmnet must be configured in order to access read network through the host :
-
- sysctl -q net.ipv4.conf.all.forwarding=1
- iptables -I INPUT -i nocloud -j ACCEPT
- iptables -N fw-interfaces
- iptables -A FORWARD -j fw-interfaces
- iptables -A fw-interfaces -i nocloud -j ACCEPT
- iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o bond0 -j MASQUERADE
-
-If you change your configuration in /usr/local/bin/etc/nocloud_net.conf, you will need to adapt the above line (interface name, subnet...)
 
 == Installation
 
@@ -74,7 +62,7 @@ Everything starts with a template.
 
 You first need to have an ISO of the system you want to install (ex: archlinux.iso). You then create a VM using this ISO :
 
- ./vmcreate -n archlinux -i archlinux.iso
+ vmtemplate -c archlinux -i archlinux.iso
 
 Once the machine created, it will start and you will have to make your template corresponding to the following standards :
 
@@ -84,13 +72,11 @@ Once the machine created, it will start and you will have to make your template 
 
 You can create as much templates as you want.
 
-Note that vmcreate can also be used to adjust VM configuration (using -a switch). VM must be powered off first.
-
 == Template downloading
 
 You can download existing templates using this :
 
- ./vmtemplate archlinux
+ vmtemplate -d archlinux
 
 available templates can be listed with -h option
 
@@ -100,7 +86,7 @@ available templates can be listed with -h option
 
 Once your template is good, you can use it to generate new VMs :
 
- ./vminstantiate -n archlinux -C 2
+ vmrun -g test -m archlinux:2:arch
 
 will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
 
@@ -109,7 +95,11 @@ In order to organize your VMs they are grouped. This is done using a two level h
 - groups will represent a kind of platform, a set of machines you use for a service.
 - types will be subgroups of servers that will group VMs by function.
 
-When nothing is specified, using vminstanciate, machines will be created in group "group" and of type "default".
+For instance, you run your application named ''awesome'' constituted of a database serveur and two web servers. You would create the set with this line :
+
+ vmrun -g awesome -m archlinux:2:web -m debian8:1:sql
+
+Precision on VM specifications is given below.
 
 === Using description file
 
@@ -240,5 +230,4 @@ It will stay in foreground and log (hopefuly) useful information until you press
 === vmrunning - list all the running guests on the host
 
 
-=== 
-vmstop - stop a group of VMs
+=== vmstop - stop a group of VMs
