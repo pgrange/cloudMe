@@ -211,15 +211,7 @@ It will stay in foreground and log (hopefuly) useful information until you press
 == Tools
 
 
-=== vm - run and connect to a VM
-
-
-
-=== vmcreate - VM creation
-
-
-
-=== vminstantiate - making clones
+=== vmtemplate - templates creation and downloading
 
 
 
@@ -227,7 +219,8 @@ It will stay in foreground and log (hopefuly) useful information until you press
 
 
 
-=== vmrunning - list all the running guests on the host
+=== vminventory - list all the running guests on the host
+
 
 
 === vmstop - stop a group of VMs
