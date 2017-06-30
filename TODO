@@ -10,21 +10,21 @@ x = canceled
 new ideas are added on top of the list
 
 !!! every time you use make, you reset any configuration that has been made
->>> tools rationalization
+... verify gl capability before using
+... make versions
+... secure spice connections
+... documentation of available functions and their prototypes in order to be able to develop an other backend
+>>> functions that use group / type as parameters must take them as two parameters, not as group/type form
+vvv tools rationalization
     vvv vminventory + vmrunning => vminventory (when not --list as $1, outputs vmrunning) (check other ansible dynamic inventories options)
     vvv vmssh => vmssh ($0 [ -c | -m ] host|ip [cmd]) (ssh to host )
-    >>> vmstop + vm + vmconsole + vmmanage => vmmanage ( $0 machine [ -g group] starts a vm and connects / $0 -s [ machine | -g group ] [-d] stops VM or group (-d destroys) -c connects to vm console / -m connects to qemu console
+    vvv vmstop + vm + vmconsole + vmmanage => vmmanage ( $0 machine [ -g group] starts a vm and connects / $0 -s [ machine | -g group ] [-d] stops VM or group (-d destroys) -c connects to vm console / -m connects to qemu console
     vvv vmcreate + vmtemplate => vmtemplate defaults specs for all actual options (set at instantiation) ( $0 name -d | -i = creates template -d from download and -i from iso)
     vvv vminstantiate + vmrun => vmrun ($0 -f|-g [ -m specs... ] -b) ( -f starts from specfile / -r start existing group / -r -m starts specline in group / -b background)
-... verify gl capability before using
 vvv make downloadable templates with nocloud key
 vvv change name
 vvv make cmnet a service
-... make versions
-... secure spice connections
->>> functions that use group / type as parameters must take them as two parameters, not as group/type form
 xxx option to download latest iso for known distribs
-... documentation of available functions and their prototypes in order to be able to develop an other backend
 vvv being able to upgrade templates in an automatic way
 vvv separate vmssh in command and fonction, for the other scripts to be able to call it by function
 vvv tool to ssh a VM without specifying -o
