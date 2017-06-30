@@ -160,7 +160,7 @@ Groups and types, besides being structural in the VM directory structure, and fo
 
 You can then stop your VMs using (-d option destroys the machines) :
 
- vmstop -d -g pftest
+ vmmanage -s -g pftest -d
 
 Alternatively, you can launch your description file using :
 
@@ -220,7 +220,3 @@ It will stay in foreground and log (hopefuly) useful information until you press
 
 
 === vminventory - list all the running guests on the host
-
-
-
-=== vmstop - stop a group of VMs

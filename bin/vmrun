@@ -41,7 +41,7 @@ stop_and_destroy_all() {
   log "I am being told to shut down and destroy all running VMs."
   stop_all
   log "removing files"
-  rm -r ${vmBaseDir}/${vmGroup}
+  vm_group_destroy ${vmGroup}
   log "Good bye !"
   exit
 }

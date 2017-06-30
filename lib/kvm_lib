@@ -334,3 +334,14 @@ vm_spice_port() {
 
   pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-spice port=//;s/,.*$//'
 }
+
+vm_group_destroy() {
+  local groupName=$1
+
+  local subGroupName="*"
+  local vmName="*"
+  rm ${vmBaseDir}/${groupName}/${subGroupName}/${vmName}/*
+  rmdir ${vmBaseDir}/${groupName}/${subGroupName}/${vmName}
+  rmdir ${vmBaseDir}/${groupName}/${subGroupName} 2>/dev/null
+  rmdir ${vmBaseDir}/${groupName}/ 2>/dev/null
+}

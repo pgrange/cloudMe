@@ -3,10 +3,13 @@
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -m <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -s -g <GROUP> [ -d ]
   Manages running VMs
   -m : connects to the qemu console of a vm
   -g : restrict selection to this group
   -t : restrict selection to this type
+  -s : stop group
+  -d : when stopping group, destroy vms
   -h : display this help" >&2
   exit
 }
@@ -23,7 +26,8 @@ modeName=
 vmName=
 groupName="*"
 subGroupName="*"
-while getopts m:g:t:h name
+stopDestroy=0
+while getopts m:sg:t:dh name
 do
   case $name in
     m)
@@ -31,15 +35,20 @@ do
       modeName="manage"
       mode=$((mode+1))
       ;;
+    s)
+      modeName="stop"
+      mode=$((mode+1))
+      ;;
     g) groupName="$OPTARG" ;;
     t) subGroupName="$OPTARG" ;;
+    d) stopDestroy=1 ;;
     h) usage ;;
   esac
 done
 shift $(($OPTIND-1))
 
-[ ${mode} -eq 0 ] && usage "One mode must be specified between -m ..."
-[ ${mode} -gt 1 ] && usage "Only one mode to specify between -m ..."
+[ ${mode} -eq 0 ] && usage "One mode must be specified between -m, -s ..."
+[ ${mode} -gt 1 ] && usage "Only one mode to specify between -m, -s ..."
 
 case ${modeName} in
   "manage")
@@ -47,5 +56,16 @@ case ${modeName} in
     vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
     port=$(vm_console_port "${vmName}")
     telnet localhost $port
+    ;;
+  "stop")
+    [ "${groupName}" == "*" ] && usage "specifying a group name is mandatory to stop a group"
+    [ "${groupName}" == "${vmCreateGroup}" ] && usage "can't drop ${vmCreateGroup}"
+    vm_running "${groupName}" "${subGroupName}" | while read vmName vmGroup vmIp
+    do
+      vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
+      vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
+      vm_stop ${vmName} ${vmGroup} ${vmSubGroup}
+    done
+    [ $stopDestroy -eq 1 ] && vm_group_destroy ${groupName}
     ;;
 esac
