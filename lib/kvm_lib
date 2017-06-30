@@ -254,9 +254,14 @@ EOF
 
 is_vm_running() {
   local vmName=$1
+  local vmGroup=$2
+  local vmSubGroup=$3
 
-  vmIsRunning=$(vm_running "*" "*" | grep "^${vmName} " | wc -l)
+  [ -z "${vmGroup}" ] && vmGroup="*"
+  [ -z "${vmSubGroup}" ] && vmSubGroup="*"
+  local vmIsRunning=$(vm_running "${vmGroup}" "${vmSubGroup}" | grep "^${vmName} " | wc -l)
   echo ${vmIsRunning}
+  [ ${vmIsRunning} -eq 1 ] && return 0 || return 1
 }
 
 vm_ssh() {
