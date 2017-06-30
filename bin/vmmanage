@@ -3,9 +3,11 @@
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -m <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -c <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
    or : $(basename $0) -s -g <GROUP> [ -d ]
   Manages running VMs
   -m : connects to the qemu console of a vm
+  -c : connects to the vm console
   -g : restrict selection to this group
   -t : restrict selection to this type
   -s : stop group
@@ -27,12 +29,17 @@ vmName=
 groupName="*"
 subGroupName="*"
 stopDestroy=0
-while getopts m:sg:t:dh name
+while getopts m:c:sg:t:dh name
 do
   case $name in
     m)
       vmName="$OPTARG"
       modeName="manage"
+      mode=$((mode+1))
+      ;;
+    c)
+      vmName="$OPTARG"
+      modeName="console"
       mode=$((mode+1))
       ;;
     s)
@@ -56,6 +63,12 @@ case ${modeName} in
     vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
     port=$(vm_console_port "${vmName}")
     telnet localhost $port
+    ;;
+  "console")
+    [ -z ${vmName} ] && usage "VM name is mandatory"
+    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    port=$(vm_spice_port "${vmName}")
+    spicy -h localhost -p $port -w ${vmSpicePassword} --class=qemu-system-${vmSystemType} >/dev/null 2>&1 &
     ;;
   "stop")
     [ "${groupName}" == "*" ] && usage "specifying a group name is mandatory to stop a group"
