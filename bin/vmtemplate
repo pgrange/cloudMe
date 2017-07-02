@@ -96,7 +96,7 @@ if [ ${downloadMode} -eq 1 ] ; then
   [ "${md5}" == "${vmTemplateBaseMd5}" ] || usage "checkum does not match (got ${md5})"
 
   log "starting template"
-  vm_run ${vmTemplate} ${vmCreateGroup} "none"
+  vm_run ${vmTemplate} ${vmCreateGroup} "" "none"
   vmIp=$(vm_ip ${vmTemplate} | tr ' ' '\n' | sort -u | tail -1)
   vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
   while [ ${vmSshOpen} -ne 0 ]

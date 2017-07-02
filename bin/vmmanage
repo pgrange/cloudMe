@@ -81,17 +81,20 @@ case ${modeName} in
     vmGroup=${vmCreateGroup}
     eval $(grep "^vmDisk=" ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf)
     chmod +w ${vmBaseDir}/${vmDisk}
-    is_vm_running ${vmName} ${vmGroup} > /dev/null && usage "Machine is already running" || vm_run ${vmName} ${vmGroup}
+    is_vm_running ${vmName} ${vmGroup} > /dev/null && usage "Machine is already running" || vm_run ${vmName} ${vmGroup} ""
     ;;
   "stop")
     [ "${groupName}" == "*" ] && usage "specifying a group name is mandatory to stop a group"
-    [ "${groupName}" == "${vmCreateGroup}" ] && usage "can't drop ${vmCreateGroup}"
     vm_running "${groupName}" "${subGroupName}" | while read vmName vmGroup vmIp
     do
-      vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
       vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
+      vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
+      [ "${vmGroup}" == "${vmCreateGroup}" ] && vmSubGroup=""
+      set -x
       vm_stop ${vmName} ${vmGroup} ${vmSubGroup}
+      set +x
     done
+    [ "${groupName}" == "${vmCreateGroup}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateGroup}"
     [ $stopDestroy -eq 1 ] && vm_group_destroy ${groupName}
     ;;
 esac

@@ -40,6 +40,7 @@ vm_stop() {
   local vmSubGroup=$3
 
   vmDir="${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/"
+  [ -z "${vmSubGroup}" ] && vmDir="${vmBaseDir}/${vmGroup}/${vmName}/"
   vmDir=$(echo "${vmDir}" | sed 's://:/:g')
   pgrep -f qemu-system-${vmSystemType} -a | grep "file=${vmDir}" | cut -d " " -f 1 | xargs kill
 }
@@ -47,8 +48,9 @@ vm_stop() {
 vm_run() {
   local vmName=$1
   local vmGroup=$2
-  local isoName=$3
-  local guiOpt=$4
+  local vmSubGroup=$3
+  local isoName=$4
+  local guiOpt=$5
 
   local isoOpt=""
   [ -f "${isoDir}/${isoName}" ] && isoOpt="-cdrom ${isoDir}/${isoName}"
@@ -72,7 +74,7 @@ vm_run() {
   local cpuType="host"
   #local cpuType="qemu64,+vmx"
 
-  [ -f "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf"
+  [ -f "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
   [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
@@ -93,7 +95,7 @@ vm_run() {
     -smp cpus=${vmCpu},cores=1,maxcpus=${maxCpu} \
     -m ${vmMem} \
     -name ${vmName} \
-    -D "${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.log" \
+    -D "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.log" \
     --daemonize \
     ${vmNoGui} ${vmMonitor} ${vmSpice} \
     -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface}
@@ -127,9 +129,8 @@ vmMem=${vmMem}
 vmCpu=${vmCpu}
 vmDisk=${vmDisk}
 EOF
-  [ -n "${vmType}" ] && vmGroup="${vmGroup}/${vmType}"
   [ "${guiNoGui}" == "no" ] && gui=""
-  vm_run ${vmName} ${vmGroup} "${isoName}" ${gui}
+  vm_run ${vmName} ${vmGroup} "${vmType}" "${isoName}" ${gui}
 }
 
 vm_clone_disk() {
@@ -234,7 +235,7 @@ vmCpu=${cpuOpt}
 vmDisk=${vmDisk}
 vmExtraDisk=${dskList}
 EOF
-    vm_run ${vmName} ${vmGroup}/${vmSubGroup} none ${guiOpt}
+    vm_run ${vmName} ${vmGroup} ${vmSubGroup} none ${guiOpt}
     vmList="${vmList} ${vmName}"
     vmIdx=$((vmIdx+1))
   done

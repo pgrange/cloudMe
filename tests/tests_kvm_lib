@@ -38,7 +38,7 @@ vmMem=256
 vmCpu=1
 vmDisk=${diskName}
 EOF
-  vm_run ${test_vm} ${test_group}/${test_type} >&2
+  vm_run ${test_vm} ${test_group} ${test_type} >&2
   assert "vm_running ${test_group} ${test_type} | grep \"^${test_vm} \"" "vm has not been created"
 }
 
@@ -120,7 +120,7 @@ EOF
  test_vm_ssh_connects_to_vm() {
    local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
    vmIp=$(vm_ip ${vmName})
-   assert "vm_ssh ${vmIp} hostname | grep \"^${vmName}$\"" "did not connect to the vm"
+   assert "vm_ssh ${vmIp} echo connected | grep \"connected\"" "did not connect to the vm"
  }
 
  ### vm_ip
@@ -142,7 +142,7 @@ EOF
  test_vm_name_returns_correct_name() {
    local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
    vmIp=$(vm_ip ${vmName})
-   maxwait=5
+   maxwait=10
    while [ "$(vm_name ${vmIp})" == "archlinux" -a $maxwait -gt 0 ] ; do sleep 1 ; maxwait=$((wait-1)); done
    vmNameRes=$(vm_name ${vmIp})
    assert_equals "${vmNameRes}" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
@@ -153,7 +153,7 @@ EOF
 test_vm_group_returns_group() {
   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
   local vmGroup=$(vm_group ${vmName})
-  asset_equals "${test_group}" "${vmGroupe}"
+  assert_equals "${test_group}" "${vmGroup}"
 }
 
 ### vm_type

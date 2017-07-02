@@ -19,7 +19,7 @@ vmName=$1
 # Template start
 log "starting ${vmName}"
 chmod +w ${vmBaseDir}/${vmCreateGroup}/${vmName}/*img
-vm_run ${vmName} ${vmCreateGroup} none
+vm_run ${vmName} ${vmCreateGroup} "" none
 log "waiting for ${vmName} to get an IP"
 vmIp=$(vm_ip ${vmName})
 [ -z "${vmIp}" ] && log "${vmName} did not get an IP in time." && exit

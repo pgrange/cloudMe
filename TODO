@@ -14,7 +14,7 @@ new ideas are added on top of the list
 ... make versions
 ... secure spice connections
 ... documentation of available functions and their prototypes in order to be able to develop an other backend
->>> functions that use group / type as parameters must take them as two parameters, not as group/type form
+vvv functions that use group / type as parameters must take them as two parameters, not as group/type form
 vvv tools rationalization
     vvv vminventory + vmrunning => vminventory (when not --list as $1, outputs vmrunning) (check other ansible dynamic inventories options)
     vvv vmssh => vmssh ($0 [ -c | -m ] host|ip [cmd]) (ssh to host )
