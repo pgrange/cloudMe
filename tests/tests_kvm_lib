@@ -75,7 +75,7 @@ vmMem=256
 vmCpu=1
 vmDisk=${diskName}
 EOF
-  diskClone=$(vm_clone_disk ${test_group}/${test_type} ${test_vm} ${test_group}/${test_type} ${test_vm}2)
+  diskClone=$(vm_clone_disk ${test_group} ${test_type} ${test_vm} ${test_group} ${test_type} ${test_vm}2)
   local expectedFile="${vmBaseDir}/${diskClone}: QEMU QCOW Image (v3), has backing file (path $(echo ${vmBaseDir}/${diskName} | sed -r 's/^(.{95}).*/\1/')),"
   assert "file ${vmBaseDir}/${diskClone} | grep \"${expectedFile}\"" "clone is not based on initial disk"
   chmod +w ${vmBaseDir}/${diskName}

@@ -12,6 +12,7 @@ archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;07bd89e3244b92a27a
 debian8;http://n0vember.free.fr/nocloud/templates/debian8;18355f4ce9673be5523f831f062eea28;19
 centos7;http://n0vember.free.fr/nocloud/templates/centos7;0ead1ad701408f5da7dceb48624adf8f;12
 "
+
 vm_disk_create() {
   local vmName=$1
   local vmCreateGroup=$2
@@ -135,17 +136,20 @@ EOF
 
 vm_clone_disk() {
   local vmSrcGroup=$1
-  local vmSrc=$2
-  local vmDestGroup=$3
-  local vmDest=$4
+  local vmSrcType=$2
+  local vmSrc=$3
+  local vmDestGroup=$4
+  local vmDestType=$5
+  local vmDest=$6
 
-  local vmSrcDir="${vmBaseDir}/${vmSrcGroup}/${vmSrc}"
+  local vmSrcDir="${vmBaseDir}/${vmSrcGroup}/${vmSrcType}/${vmSrc}"
+  [ -z "${vmSrcType}" ] && vmSrcDir="${vmBaseDir}/${vmSrcGroup}/${vmSrc}"
   local vmSrcCount=$(ps -A -o args | grep qemu-system-${vmSystemType} | grep -v grep | grep "${vmSrcDir}/" | wc -l)
   [ ${vmSrcCount} -ne 0 ] && usage "can't clone a running vm"
   . ${vmSrcDir}/${vmSrc}.conf
   [ -f "${vmBaseDir}/${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDisk}"
   chmod a-w "${vmBaseDir}/${vmDisk}"
-  local vmDestDir="${vmDestGroup}/${vmDest}"
+  local vmDestDir="${vmDestGroup}/${vmDestType}/${vmDest}"
   local vmDestDiskCount=0
   while [ -f "${vmBaseDir}/${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}" ] ; do vmDestDiskCount=$((vmDestDiskCount+1)) ; done
   local vmDestDisk="${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}"
@@ -218,7 +222,7 @@ vm_instantiate() {
     [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
     [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
-    local vmDisk=$(vm_clone_disk ${vmTemplateGroup} ${vmTemplate} ${vmGroup}/${vmSubGroup} ${vmName})
+    local vmDisk=$(vm_clone_disk ${vmTemplateGroup} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
     [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
     if [ -n "${dskOpt}" ] ; then
