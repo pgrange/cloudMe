@@ -275,6 +275,7 @@ vm_ssh() {
   [ "${vmIpTest}" != "${vmIp}" ] && vmIp=$(vm_ip ${vmIp})
   shift
 
+  grep "^${vmIp}[ ,]" ~/.ssh/known_hosts >/dev/null && ssh-keygen -R ${vmIp} >/dev/null
   sshTry=0
   sshTryMax=30
   while [ ${sshTry} -le ${sshTryMax} ]

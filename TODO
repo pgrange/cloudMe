@@ -10,11 +10,11 @@ x = canceled
 new ideas are added on top of the list
 
 !!! every time you use make, you reset any configuration that has been made
-!!! regularly have known_hosts issues, even if we don't check keys
 ... verify gl capability before using
 ... make versions
 ... secure spice connections
 ... documentation of available functions and their prototypes in order to be able to develop an other backend
+vvv regularly have known_hosts issues, even if we don't check keys
 vvv functions that use group / type as parameters must take them as two parameters, not as group/type form
 vvv tools rationalization
     vvv vminventory + vmrunning => vminventory (when not --list as $1, outputs vmrunning) (check other ansible dynamic inventories options)
