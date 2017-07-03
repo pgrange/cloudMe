@@ -10,6 +10,7 @@ x = canceled
 new ideas are added on top of the list
 
 !!! every time you use make, you reset any configuration that has been made
+!!! regularly have known_hosts issues, even if we don't check keys
 ... verify gl capability before using
 ... make versions
 ... secure spice connections
