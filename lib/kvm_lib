@@ -23,11 +23,12 @@ vmBaseDir="$HOME/Documents/kvm/VMs"
 vmDiskExt="img"
 vmSystemType=$(uname -m)
 
-vmTemplates="archlinux debian8 centos7"
+vmTemplates="archlinux debian8 centos7 debian9"
 vmTemplatesDetails="
 archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;07bd89e3244b92a27abc7485d56e46b8;15
 debian8;http://n0vember.free.fr/nocloud/templates/debian8;18355f4ce9673be5523f831f062eea28;19
 centos7;http://n0vember.free.fr/nocloud/templates/centos7;0ead1ad701408f5da7dceb48624adf8f;12
+debian9;http://n0vember.free.fr/nocloud/templates/debian9;23d0ed780c6ff5d0210d97384153f856;14
 "
 
 vm_disk_create() {
