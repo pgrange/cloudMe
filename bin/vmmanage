@@ -107,9 +107,7 @@ case ${modeName} in
       vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
       vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
       [ "${vmGroup}" == "${vmCreateGroup}" ] && vmSubGroup=""
-      set -x
       vm_stop ${vmName} ${vmGroup} ${vmSubGroup}
-      set +x
     done
     [ "${groupName}" == "${vmCreateGroup}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateGroup}"
     [ $stopDestroy -eq 1 ] && vm_group_destroy ${groupName}
