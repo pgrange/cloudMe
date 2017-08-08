@@ -20,7 +20,7 @@
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) <TEMPLATE>" >&2
-  exit
+  exit 1
 }
 
 realMe=$(readlink -e $0)

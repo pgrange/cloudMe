@@ -21,7 +21,7 @@ usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) <VM>" >&2
   echo "connects with SSH to the VM specified as name or IP.">&2
-  exit
+  exit 1
 }
 
 realMe=$(readlink -e $0)

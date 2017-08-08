@@ -25,7 +25,7 @@ usage() {
   --list : outputs json inventory
   -h : display this help
   ">&2
-  exit
+  exit 1
 }
 
 realMe=$(readlink -e $0)

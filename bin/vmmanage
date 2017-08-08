@@ -32,7 +32,7 @@ usage() {
   -s : stop group
   -d : when stopping group, destroy vms
   -h : display this help" >&2
-  exit
+  exit 1
 }
 
 realMe=$(readlink -e $0)

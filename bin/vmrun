@@ -32,7 +32,7 @@ usage() {
   -b : background mode. Just launcheds VM (with -f or -r) and exit.
   -h : display this help
   NOTE : SIGINT (or ^C) will stop all the managed VMs and will then destoy them. ${stopSignal} will stop and quit as well, but will leave the machiness in place for you to relaunch then at will (that's what the -r option is for)." >&2
-  exit
+  exit 1
 }
 
 stop_all() {

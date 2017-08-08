@@ -25,7 +25,7 @@ usage() {
   -c : create a template ou t of iso
   -i : specify isoName
   -h : display this help" >&2
-  exit
+  exit 1
 }
 
 realMe=$(readlink -e $0)
