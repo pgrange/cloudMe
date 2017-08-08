@@ -104,8 +104,8 @@ case ${modeName} in
     [ "${groupName}" == "*" ] && usage "specifying a group name is mandatory to stop a group"
     vm_running "${groupName}" "${subGroupName}" | while read vmName vmGroup vmIp
     do
-      vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
       vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
+      vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
       [ "${vmGroup}" == "${vmCreateGroup}" ] && vmSubGroup=""
       vm_stop ${vmName} ${vmGroup} ${vmSubGroup}
     done
