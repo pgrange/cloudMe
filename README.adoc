@@ -35,6 +35,10 @@ Following things needs to be installed on your machine :
 - dnsmasq
 - make
 
+Note that for users to use kvm and nocloud, you must add them to the kvm group :
+
+  useradd -a -G kvm my_user
+
 == Network
 
 === Configuration
