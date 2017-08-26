@@ -65,6 +65,12 @@ shift $(($OPTIND-1))
 [ ${createMode} -eq 0 -a ${downloadMode} -eq 0 ] && usage "What do you want ? Create or download ?"
 [ ${createMode} -eq 1 -a -z "${isoName}" ] && usage "You must specify an iso to create a template."
 
+vmTemplateDir=${vmBaseDir}/${vmCreateGroup}/${vmTemplate}
+if [ -d "${vmTemplateDir}" ] ; then
+  echo "you already have a template called ${vmTemplate}"
+  exit
+fi
+
 if [ ${createMode} -eq 1 ] ; then
   vm_create ${vmTemplate} ${vmCreateGroup} "" ${isoName}
 fi
@@ -74,9 +80,7 @@ if [ ${downloadMode} -eq 1 ] ; then
   vmTemplateBaseUrl=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 2)
   vmTemplateBaseMd5=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 3)
   vmTemplateBaseNum=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 4)
-  vmTemplateDir=${vmBaseDir}/${vmCreateGroup}/${vmTemplate}
 
-  [ -d "${vmTemplateDir}" ] && usage "you already have a template called ${vmTemplate}"
   mkdir -p ${vmTemplateDir}/${vmTemplate}.tmp
   cd ${vmTemplateDir}
   log "fetching ${vmTemplate}.conf"
