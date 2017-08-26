@@ -13,11 +13,7 @@ ETC= $(wildcard etc/*)
 SINSTALL_OPTS=-o root -g kvm -m 0755
 SBIN= $(wildcard sbin/*)
 
-.PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC) system
-
-prerequisites:
-	@echo +++ checking prerequisites
-	@tools/prerequisites
+.PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC) prerequisites system
 
 all: prerequisites $(BIN) $(LIB) $(SBIN) $(ETC) system
 
@@ -32,6 +28,10 @@ $(SBIN):
 
 $(ETC):
 	$(INSTALL) $(CINSTALL_OPTS) $@ $(PREFIX)/$@
+
+prerequisites:
+	@echo +++ checking prerequisites
+	@tools/prerequisites
 
 system:
 	@tools/qemu-bridge
