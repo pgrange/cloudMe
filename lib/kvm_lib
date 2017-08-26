@@ -93,6 +93,7 @@ vm_run() {
   local cpuType="host"
   #local cpuType="qemu64,+vmx"
 
+  local vmUuid=$(uuidgen)
   [ -f "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
@@ -103,7 +104,8 @@ vm_run() {
     sed 's/>/,format=qcow2,if=virtio/g' \
   )
 
-  vmMac=$(vm_mac_gen ${vmName})
+  local vmMac=$(vm_mac_gen ${vmUuid})
+
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
@@ -114,6 +116,7 @@ vm_run() {
     -smp cpus=${vmCpu},cores=1,maxcpus=${maxCpu} \
     -m ${vmMem} \
     -name ${vmName} \
+    -uuid ${vmUuid} \
     -D "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.log" \
     --daemonize \
     ${vmNoGui} ${vmMonitor} ${vmSpice} \
@@ -122,7 +125,8 @@ vm_run() {
 }
 
 vm_mac_gen() {
-  echo $(uuidgen) | sed -r 's/-//g;s/^(.{6}).*/005056\1/;s/(..)/\1:/g;s/:$//'
+  [ $# -gt 0 ] && uuid=$1 || uuid=$(uuidgen)
+  echo ${uuid} | sed -r 's/-//g;s/^(.{6}).*/005056\1/;s/(..)/\1:/g;s/:$//'
 }
 
 vm_get_mac() {
@@ -140,6 +144,7 @@ vm_create() {
 
   local gui="gui"
 
+  vmUuid=$(uuidgen)
   [ -f ${vmBaseDir}/${vmGroup}/${vmType}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}
   vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
   cat > ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}/${vmName}.conf <<EOF
@@ -147,6 +152,7 @@ vmName=${vmName}
 vmMem=${vmMem}
 vmCpu=${vmCpu}
 vmDisk=${vmDisk}
+vmUuid=${vmUuid}
 EOF
   [ "${guiNoGui}" == "no" ] && gui=""
   vm_run ${vmName} ${vmGroup} "${vmType}" "${isoName}" ${gui}
@@ -236,7 +242,8 @@ vm_instantiate() {
   local vmIdx=0
   for vmNum in $(seq 1 ${vmCount})
   do
-    local vmName=$(uuidgen)
+    local vmUuid=$(uuidgen)
+    local vmName=${vmUuid}
     [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
     [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
@@ -252,6 +259,7 @@ vm_instantiate() {
     fi
     cat > ${vmDir}/${vmName}/${vmName}.conf <<EOF
 vmName=${vmName}
+vmUuid=${vmUuid}
 vmMem=${memOpt}
 vmCpu=${cpuOpt}
 vmDisk=${vmDisk}
