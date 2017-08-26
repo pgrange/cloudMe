@@ -93,7 +93,7 @@ available templates can be listed with -h option
 
 Once your template is good, you can use it to generate new VMs :
 
- vmrun -g test -m archlinux:2:arch
+ vmrun -r test -m archlinux:2:arch
 
 will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
 
@@ -104,7 +104,7 @@ In order to organize your VMs they are grouped. This is done using a two level h
 
 For instance, you run your application named ''awesome'' constituted of a database serveur and two web servers. You would create the set with this line :
 
- vmrun -g awesome -m archlinux:2:web -m debian8:1:sql
+ vmrun -r awesome -m archlinux:2:web -m debian8:1:sql
 
 Precision on VM specifications is given below.
 
