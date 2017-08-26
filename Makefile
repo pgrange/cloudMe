@@ -15,9 +15,11 @@ SBIN= $(wildcard sbin/*)
 
 .PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC) system
 
-all: $(BIN) $(LIB) $(SBIN) $(ETC) system
+prerequisites:
 	@echo +++ checking prerequisites
 	@tools/prerequisites
+
+all: prerequisites $(BIN) $(LIB) $(SBIN) $(ETC) system
 
 $(BIN):
 	$(INSTALL) $(INSTALL_OPTS) $@ $(PREFIX)/$@
