@@ -84,7 +84,7 @@ inventory() {
     fi
 
     hosts="${hosts} \"${ip}\","
-    children="${children} \\\"${group}_${type}\\\"," 
+    children="${children} \\\"${group}_${type}\\\","
 
   done
 
