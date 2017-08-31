@@ -28,7 +28,6 @@ usage() {
        or those specified using -m option.
   -m : specify a vm specification (as provided to -f option)
   -g : when running VMs have a GUI for each one
-  -s : stop a running pf by sending it ${stopSignal} (see NOTE below)
   -b : background mode. Just launcheds VM (with -f or -r) and exit.
   -h : display this help
   NOTE : SIGINT (or ^C) will stop all the managed VMs and will then destoy them. ${stopSignal} will stop and quit as well, but will leave the machiness in place for you to relaunch then at will (that's what the -r option is for)." >&2
@@ -92,12 +91,11 @@ vmName=
 guiOpt=
 specLines=
 backgroundMode=0
-while getopts f:r:s:m:gbh name
+while getopts f:r:m:gbh name
 do
   case $name in
     f) groupConfFile="$OPTARG" ;;
     r) groupStored="$OPTARG" ;;
-    s) groupStop="$OPTARG" ;;
     m) [ -n "${specLines}" ] && specLines="${specLines}\n$OPTARG" || specLines="$OPTARG" ;;
     g) guiOpt="gui" ;;
     b) backgroundMode=1 ;;
@@ -109,16 +107,10 @@ shift $(($OPTIND-1))
 optCount=0
 [ -z "${groupConfFile}" ] || optCount=$((optCount+1))
 [ -z "${groupStored}" ] || optCount=$((optCount+1))
-[ -z "${groupStop}" ] || optCount=$((optCount+1))
 [ ${optCount} -ne 1 ] && usage "One (and only one) option must be specified."
 
 if [ -n "${specLines}" -a -z "${groupStored}" ] ; then
   usage "you can't specify -m without specifying group name with -r"
-fi
-
-if [ -n "${groupStop}" ] ; then
-  pkill -${stopSignal} -f "$(basename ${realMe}) -[rf] ${groupStop}"
-  exit
 fi
 
 if [ -n "${groupConfFile}" ] ; then
