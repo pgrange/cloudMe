@@ -21,9 +21,11 @@ usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -d TEMPLATE_NAME
    or : $(basename $0) -c TEMPLATE_NAME -i ISO_NAME
+   or : $(basename $0) -L
   -d : download a template. TEMPLATE_NAME is one of ${vmTemplates}
   -c : create a template ou t of iso
   -i : specify isoName
+  -L : list existing templates
   -h : display this help" >&2
   exit 1
 }
@@ -39,7 +41,7 @@ vmTemplate=
 downloadMode=0
 createMode=0
 isoName=
-while getopts d:c:i:h name
+while getopts d:c:i:Lh name
 do
   case $name in
     d)
@@ -49,6 +51,10 @@ do
     c)
       createMode=1
       vmTemplate=$OPTARG
+      ;;
+    L)
+      tree --noreport -d ${vmBaseDir}/${vmCreateGroup}
+      exit
       ;;
     i)
       isoName=$OPTARG
