@@ -9,11 +9,15 @@ x = canceled
 
 new ideas are added on top of the list
 
+... commit nat feature
+... commit group service feature
 !!! every time you use make, you reset any configuration that has been made
 ... verify gl capability before using
-... make versions
 ... secure spice connections
+... make versions
 ... documentation of available functions and their prototypes in order to be able to develop an other backend
+... add options to vmtemplate to list existing templates
+... add options to vminventory to list existing groups
 vvv back to GPL
 vvv regularly have known_hosts issues, even if we don't check keys
 vvv functions that use group / type as parameters must take them as two parameters, not as group/type form
