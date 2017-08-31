@@ -17,7 +17,7 @@ new ideas are added on top of the list
 ... make versions
 ... documentation of available functions and their prototypes in order to be able to develop an other backend
 ... add options to vmtemplate to list existing templates
-... add options to vminventory to list existing groups
+vvv add options to vminventory to list existing groups
 vvv back to GPL
 vvv regularly have known_hosts issues, even if we don't check keys
 vvv functions that use group / type as parameters must take them as two parameters, not as group/type form

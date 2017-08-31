@@ -19,10 +19,11 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) [ --list | -h ]
+  echo "usage : $(basename $0) [ --list | -h | -L ]
   this tool is intended to be used as inventory by ansible, ansible-playbook...
   but if you don't pass any option, you will have a list of running VMs
-  --list : outputs json inventory
+  --list : outputs json inventory, suitable for ansible dynamic inventory
+  -L : list existing groups
   -h : display this help
   ">&2
   exit 1
@@ -111,6 +112,9 @@ inventory() {
 case "$1" in
   "--list")
     inventory
+    ;;
+  "-L")
+    tree --noreport -d ${vmBaseDir} -I ${vmCreateGroup}
     ;;
   "")
     vm_running "${groupName}" "${subGroupName}"
