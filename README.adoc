@@ -10,6 +10,10 @@ To install, get a template and instanciate 5 times this template :
  vmtemplate -d debian8
  vmrun -g test -m debian8:5:deb
 
+== Table of content
+
+toc:[]
+
 == Presentation
 
 nocloud is a cheap solution to own your cloud. It was first developped as a side project to provide the tools I needed for my virtualbox usage. I switched to kvm backend but keeping in mind the possibility to offer multiple backends.
@@ -34,6 +38,7 @@ Following things needs to be installed on your machine :
 - qemu
 - dnsmasq
 - make
+- tree
 
 Note that for users to use kvm and nocloud, you must add them to the kvm group :
 
@@ -220,10 +225,51 @@ It will stay in foreground and log (hopefuly) useful information until you press
 
 === vmtemplate - templates creation and downloading
 
+vmtemplate manages templates. It has two main functions : creating templates and downloading templates.
 
+You can download templates using the following form :
+
+----
+vmtemplate -d TEMPLATE_NAME
+----
+
+Available templates are displayed by the -h option :
+
+----
+vmtemplate -h
+----
+
+You can create your own template with :
+
+----
+vmtemplate -c TEMPLATE_NAME -i ISO_NAME
+----
+
+* ISO_NAME is either the name of a template in configured iso directory, or a path to a file.
+* TEMPLATE_NAME must not be the name of an existing template.
+
+You can get the templates list with :
+
+----
+vmtemplate -L
+----
 
 === vmrun - run all the VMs of a group
 
 
 
 === vminventory - list all the running guests on the host
+
+
+
+=== vmmanage - managing running VMs
+
+
+
+=== vmssh - connect to VMs
+
+
+
+=== vmupgrade - OS upgrade
+
+
