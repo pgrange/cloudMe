@@ -1,3 +1,12 @@
+// Settings:
+:experimental:
+:idprefix:
+:idseparator: -
+ifdef::env-github,env-browser[]
+:toc: macro
+:toclevels: 1
+endif::[]
+
 = nocloud
 
 == TL;DR
