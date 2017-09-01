@@ -1,6 +1,8 @@
 // Settings:
 :toc: macro
 :numbered: 1
+:sectids: 1
+:sectlinks: 1
 
 = nocloud
 
