@@ -6,6 +6,13 @@
 
 = nocloud
 
+toc::[]
+
+<<<
+:numbered:
+
+<<<
+
 == TL;DR
 
 nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qemu and written in bash.
@@ -15,15 +22,6 @@ To install, get a template and instanciate 5 times this template :
  sudo make
  vmtemplate -d debian8
  vmrun -g test -m debian8:5:deb
-
-== Table of content
-
-toc::[]
-
-<<<
-:numbered:
-
-<<<
 
 == Presentation
 
