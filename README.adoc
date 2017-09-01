@@ -1,11 +1,6 @@
 // Settings:
-:experimental:
-:idprefix:
-:idseparator: -
-ifdef::env-github,env-browser[]
 :toc: macro
-:toclevels: 1
-endif::[]
+:numbered: 1
 
 = nocloud
 
@@ -21,7 +16,12 @@ To install, get a template and instanciate 5 times this template :
 
 == Table of content
 
-toc:[]
+toc::[]
+
+<<<
+:numbered:
+
+<<<
 
 == Presentation
 
