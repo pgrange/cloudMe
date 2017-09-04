@@ -307,12 +307,21 @@ ansible-playbook -i inventory playbook.yml
 === vmmanage - managing running VMs
 
 vmmanage deals with running VMs and groups maintainance. It can connect :
-* to qemu console
-* to the VM console.
 
-It can also launch a template.
+* to qemu console (vmmanage -m tst00)
+* to the VM console (vmmanage -c tst00)
 
-Last usage is that it can stop a running group, and optionnaly destrioy all of its VMs.
+It can also launch a template :
+
+----
+vmmanage -T archlinux
+----
+
+Last usage is that it can stop a running group, and optionnaly destroy all of its VMs.
+
+----
+vmmanage -s -g my_group
+----
 
 === vmssh - connect to VMs
 
