@@ -265,20 +265,68 @@ vmtemplate -L
 
 === vmrun - run all the VMs of a group
 
+vmrun launches VMs from templates, using spec files or inline specifications. It can also rerun an existing group.
 
+To run from a spec file :
+
+----
+vmrun -f my_group
+----
+
+to run directly from the command line :
+
+----
+vmrun -r my_group -m debian8:2:web -m debian8:1:sql
+----
+
+More complete description of VM specifications can be found above in this documentation.
 
 === vminventory - list all the running guests on the host
 
+vminventory is used to list running and existing VMs.
 
+To get running VMs :
+
+----
+vminventory
+----
+
+To get existing (but not only running) groups and types :
+
+----
+vminventory -L
+----
+
+vminventory also provides an ansible dynamic inventory, using the --list option. You can then call ansible or ansible-playbook using the script as inventory :
+
+----
+ln -s /usr/local/bin/vminventory inventory
+ansible-playbook -i inventory playbook.yml
+----
 
 === vmmanage - managing running VMs
 
+vmmanage deals with running VMs and groups maintainance. It can connect :
+* to qemu console
+* to the VM console.
 
+It can also launch a template.
+
+Last usage is that it can stop a running group, and optionnaly destrioy all of its VMs.
 
 === vmssh - connect to VMs
 
+vmssh connects you to a VM usgin ssh. You can name VM by its name or IP address. It also can take a command as argument, as ssh does.
 
+----
+vmssh 192.168.1.12 hostname
+vmssh tst00
+----
 
 === vmupgrade - OS upgrade
 
+vmupgrade runs a system upgrade on a template if it knows how. It currently knows how to upgrade archlinux, debian and ubuntu systems.
 
+----
+vmupgrade debian8
+----
