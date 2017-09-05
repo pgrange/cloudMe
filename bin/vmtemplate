@@ -54,7 +54,7 @@ do
       ;;
     L)
       cd ${vmBaseDir}/${vmCreateGroup}
-      ls
+      ls -1
       cd - >/dev/null 2>&1
       exit
       ;;
