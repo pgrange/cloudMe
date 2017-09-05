@@ -53,7 +53,9 @@ do
       vmTemplate=$OPTARG
       ;;
     L)
-      tree --noreport -d ${vmBaseDir}/${vmCreateGroup}
+      cd ${vmBaseDir}/${vmCreateGroup}
+      ls
+      cd - >/dev/null 2>&1
       exit
       ;;
     i)

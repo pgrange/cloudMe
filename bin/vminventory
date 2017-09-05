@@ -114,7 +114,11 @@ case "$1" in
     inventory
     ;;
   "-L")
-    tree --noreport -d ${vmBaseDir} -I ${vmCreateGroup}
+    vmPath=$(dirname ${vmBaseDir})
+    vmDir=$(basename ${vmBaseDir})
+    cd ${vmPath}
+    tree --noreport -d ${vmDir} -I ${vmCreateGroup}
+    cd - >/dev/null 2>&1
     ;;
   "")
     vm_running "${groupName}" "${subGroupName}"
