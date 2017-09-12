@@ -13,7 +13,7 @@ new ideas are added on top of the list
 ... commit group service feature
 ... verify gl capability before using
 ... secure spice connections
-... make versions
+vvv make versions
 vvv every time you use make, you reset any configuration that has been made
 vvv add user in kvm group
 vvv documentation of available functions and their prototypes in order to be able to develop an other backend
