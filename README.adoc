@@ -349,3 +349,19 @@ vmupgrade runs a system upgrade on a template if it knows how. It currently know
 ----
 vmupgrade debian8
 ----
+
+=== vmnat - access specific ports
+
+Virtual machines are accessible from the host, but if you want to expose services to outside world, you will have to nat a host port to a guest port.
+
+Creation NAT rule :
+
+----
+vmnat 8080:tst00:80
+----
+
+above command will create an iptables nat rule to access the 80 port of the guest through the port 8080 on the host. To delete this rule, simply use the -d paramter :
+
+----
+vmnat -d 8080:tst00:80
+----
