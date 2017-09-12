@@ -76,6 +76,16 @@ Only thing to do is :
 
  sudo make
 
+== Configuration
+
+Nocloud comes with a default configuration. It is defined in /usr/local/lib/cm_lib. This configuration can be overriden using one of the following config file (searched for in this order) :
+
+* ~/.nocloud.conf
+* ~/.config/nocloud/nocloud.conf
+* /etc/nocloud.conf
+
+Those configuration files can override any parameter defined in cm_lib.
+
 == Cloud initialization and template managment
 
 Everything starts with a template.

@@ -14,8 +14,8 @@ new ideas are added on top of the list
 ... verify gl capability before using
 ... secure spice connections
 ... make versions
-!!! every time you use make, you reset any configuration that has been made
->>> add user in kvm group
+vvv every time you use make, you reset any configuration that has been made
+vvv add user in kvm group
 vvv documentation of available functions and their prototypes in order to be able to develop an other backend
 vvv add options to vmtemplate to list existing templates
 vvv add options to vminventory to list existing groups

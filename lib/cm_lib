@@ -91,7 +91,7 @@ cm_check() {
 cm_check ${bridgeInterface}
 
 # ConfFile search and source
-confFile=.nocloud.conf
+confFile=~/.nocloud.conf
 [ -f ${confFile} ] || confFile=~/.config/nocloud/nocloud.conf
 [ -f ${confFile} ] || confFile=/etc/nocloud.conf
 if [ -f ${confFile} ] ; then
