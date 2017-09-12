@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash_unit
 
 ### vm_disk_create
 
@@ -204,3 +204,5 @@ wait_for_vm_to_stop() {
 test_group=group_$$_${RANDOM}
 test_type=type_$$_${RANDOM}
 test_vm=vm_$$_${RANDOM}
+
+# vim: syntax=sh
