@@ -221,7 +221,6 @@ vm_instantiate() {
   local memOpt=${tmplt_vmMem}
   local cpuOpt=${tmplt_vmCpu}
   local dskOpt=
-  local dskList=
   local guiOpt=
   if [ -n "${vmOpts}" ] ; then
     for vmOpt in ${vmOpts}
@@ -250,6 +249,7 @@ vm_instantiate() {
     local vmDisk=$(vm_clone_disk ${vmTemplateGroup} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
     [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
+    local dskList=
     if [ -n "${dskOpt}" ] ; then
       for dskSize in $(echo ${dskOpt} | tr ',' ' ')
       do
