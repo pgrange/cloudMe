@@ -83,76 +83,79 @@ EOF
 
 ### vm_running
 
- test_vm_running_retrives_launched_vm() {
-   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   assert_equals "1" "$(vm_running ${test_group} ${test_type} | grep "^${vmName} ${test_group}/${test_type}" | wc -l)" "vm has not been retrieved"
- }
+test_vm_running_retrives_launched_vm() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  assert_equals "1" "$(vm_running ${test_group} ${test_type} | grep "^${vmName} ${test_group}/${test_type}" | wc -l)" "vm has not been retrieved"
+}
 
- ### vm_configure
+### vm_configure
 
- test_vm_configure_sets_hostname() {
-   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   vm_ssh ${vmName} true
-   sleep 1
-   assert_equals "${vmName}" "$(vm_ssh ${vmName} cat /etc/hostname)" "host name has not been set"
- }
+test_vm_configure_sets_hostname() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  vm_ssh ${vmName} true
+  sleep 1
+  assert_equals "${vmName}" "$(vm_ssh ${vmName} cat /etc/hostname)" "host name has not been set"
+}
 
- ### vm_instantiate
+### vm_instantiate
 
- test_vm_instantiate_creates_and_launches_machine() {
-   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   assert "vm_running ${test_group} ${test_type} | grep \"^${vmName} \"" "vm has not been created"
- }
+test_vm_instantiate_creates_and_launches_machine() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  assert "vm_running ${test_group} ${test_type} | grep \"^${vmName} \"" "vm has not been created"
+}
 
- ### is_vm_running
+### is_vm_running
 
- test_is_vm_running_returns_1_when_vm_is_running() {
-   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   assert_equals "1" "$(is_vm_running ${vmName})" "vm is not seen"
- }
+test_is_vm_running_returns_1_when_vm_is_running() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  assert_equals "1" "$(is_vm_running ${vmName})" "vm is not seen"
+}
 
- test_is_vm_running_returns_0_when_vm_is_not_running() {
-   assert_equals "0" "$(is_vm_running this_would_surely_be_bad_luck_if_a_vm_was_running_with_that_name)" "non running vm is seen"
- }
+test_is_vm_running_returns_0_when_vm_is_not_running() {
+  assert_equals "0" "$(is_vm_running this_would_surely_be_bad_luck_if_a_vm_was_running_with_that_name)" "non running vm is seen"
+}
 
- ### vm_ssh
+### vm_ssh
 
- test_vm_ssh_connects_to_vm() {
-   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   local vmIp=$(vm_ip ${vmName})
-   assert "vm_ssh ${vmIp} echo connected | grep \"connected\"" "did not connect to the vm"
- }
+test_vm_ssh_connects_to_vm() {
+  local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
+  local vmIp=$(vm_ip ${vmName})
+  assert "vm_ssh ${vmIp} echo connected | grep \"connected\"" "did not connect to the vm"
+}
 
- ### vm_ip
+### vm_ip
 
- test_vm_ip_returns_correct_ip() {
-   local template_name=archlinux
-   local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
-   local vmIp=$(vm_ip ${vmName})
-   local actual_vm_name=$(vm_ssh ${vmIp} hostname)
-   while [ "${actual_vm_name}" == "${template_name}" ] ; do
-     sleep 1
-     actual_vm_name=$(vm_ssh ${vmIp} hostname)
-   done
-   assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname)" "ip address does not match the vm"
- }
+test_vm_ip_returns_correct_ip() {
+  local template_name=archlinux
+  local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
+  local vmIp=$(vm_ip ${vmName})
+  local actual_vm_name=$(vm_ssh ${vmIp} hostname)
+  while [ "${actual_vm_name}" == "${template_name}" ] ; do
+    sleep 1
+    actual_vm_name=$(vm_ssh ${vmIp} hostname)
+  done
+  assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname)" "ip address does not match the vm"
+}
 
- ### vm_name
+### vm_name
 
- test_vm_name_returns_correct_name() {
-   local template_name=archlinux
-   local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
-   local vmIp=$(vm_ip ${vmName})
-   local maxwait=20
-   local vmNameRes=$(vm_name ${vmIp})
-   while [ "${vmNameRes}" == "${template_name}" -a $maxwait -gt 0 ]
-   do
-     sleep 1
-     maxwait=$((wait-1))
-     vmNameRes=$(vm_name ${vmIp})
-   done
-   assert_equals "${vmNameRes}" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
- }
+test_vm_name_returns_correct_name() {
+  local template_name=archlinux
+  local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
+  local vmIp=$(vm_ip ${vmName})
+  local maxwait=20
+  local vmNameRes=$(vm_name ${vmIp})
+  local vmKnownName=$(vm_ssh ${vmIp} hostname)
+  while [ "${vmNameRes}" == "${template_name}" -a "${vmNameRes}" != "${vmKnownName}" -a $maxwait -gt 0 ]
+  do
+    sleep 1
+    maxwait=$((maxwait-1))
+    echo -n .
+    vmNameRes=$(vm_name ${vmIp})
+    vmKnownName=$(vm_ssh ${vmIp} hostname)
+  done
+  assert_equals "$(vm_name ${vmIp})" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
+}
 
 ### vm_group
 
