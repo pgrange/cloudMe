@@ -10,7 +10,8 @@ x = canceled
 new ideas are added on top of the list
 
 !!! installation problem on debian where who command does not reply as expected
-   >>> trying to reproduce
+   xxx trying to reproduce > unable to reproduce in the different templates I have
+   >>> figuring an other way of getting real user name
 ... commit group service feature
 ... verify gl capability before using
 ... secure spice connections
