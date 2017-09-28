@@ -142,8 +142,12 @@ EOF
  test_vm_name_returns_correct_name() {
    local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
    vmIp=$(vm_ip ${vmName})
-   maxwait=10
-   while [ "$(vm_name ${vmIp})" == "archlinux" -a $maxwait -gt 0 ] ; do sleep 1 ; maxwait=$((wait-1)); done
+   maxwait=20
+   while [ "$(vm_name ${vmIp})" == "archlinux" -a $maxwait -gt 0 ]
+   do
+     sleep 1
+     maxwait=$((wait-1))
+   done
    vmNameRes=$(vm_name ${vmIp})
    assert_equals "${vmNameRes}" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
  }
