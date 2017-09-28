@@ -13,7 +13,7 @@ ETC= $(wildcard etc/*)
 SINSTALL_OPTS=-o root -g kvm -m 0755
 SBIN= $(wildcard sbin/*)
 
-.PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC) prerequisites system
+.PHONY: all $(BIN) $(LIB) $(SBIN) $(ETC) prerequisites system tests
 
 all: prerequisites $(BIN) $(LIB) $(SBIN) $(ETC) system
 
@@ -38,3 +38,6 @@ system:
 	@tools/kvm-mod
 	@echo +++ installing service
 	@cd services && make
+
+tests:
+	cd tests ; make
