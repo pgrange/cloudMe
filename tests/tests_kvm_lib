@@ -119,7 +119,7 @@ EOF
 
  test_vm_ssh_connects_to_vm() {
    local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   vmIp=$(vm_ip ${vmName})
+   local vmIp=$(vm_ip ${vmName})
    assert "vm_ssh ${vmIp} echo connected | grep \"connected\"" "did not connect to the vm"
  }
 
@@ -128,7 +128,7 @@ EOF
  test_vm_ip_returns_correct_ip() {
    local template_name=archlinux
    local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
-   vmIp=$(vm_ip ${vmName})
+   local vmIp=$(vm_ip ${vmName})
    local actual_vm_name=$(vm_ssh ${vmIp} hostname)
    while [ "${actual_vm_name}" == "${template_name}" ] ; do
      sleep 1
@@ -140,15 +140,17 @@ EOF
  ### vm_name
 
  test_vm_name_returns_correct_name() {
-   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-   vmIp=$(vm_ip ${vmName})
-   maxwait=20
-   while [ "$(vm_name ${vmIp})" == "archlinux" -a $maxwait -gt 0 ]
+   local template_name=archlinux
+   local vmName=$(vm_instantiate ${template_name} 1 ${test_group} ${test_type} | xargs)
+   local vmIp=$(vm_ip ${vmName})
+   local maxwait=20
+   local vmNameRes=$(vm_name ${vmIp})
+   while [ "${vmNameRes}" == "${template_name}" -a $maxwait -gt 0 ]
    do
      sleep 1
      maxwait=$((wait-1))
+     vmNameRes=$(vm_name ${vmIp})
    done
-   vmNameRes=$(vm_name ${vmIp})
    assert_equals "${vmNameRes}" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
  }
 
