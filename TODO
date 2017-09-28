@@ -9,10 +9,10 @@ x = canceled
 
 new ideas are added on top of the list
 
-... commit nat feature
 ... commit group service feature
 ... verify gl capability before using
 ... secure spice connections
+vvv commit nat feature
 vvv make versions
 vvv every time you use make, you reset any configuration that has been made
 vvv add user in kvm group
