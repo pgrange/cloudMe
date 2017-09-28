@@ -22,7 +22,7 @@ done
 echo "%kvm ALL=(ALL) NOPASSWD: /usr/local/sbin/vmnat" > /etc/sudoers.d/kvm-iptables
 
 # Check user
-user_name=$(who -m | cut -d ' ' -f 1)
+user_name=$(last $(tty | sed 's:/dev/::') | grep "logged in" | sed 's: .*::')
 other_user_name=""
 if [ "${user_name}" == root ] ; then
   echo installing as root...
