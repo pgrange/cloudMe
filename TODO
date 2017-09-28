@@ -12,6 +12,7 @@ new ideas are added on top of the list
 ... commit group service feature
 ... verify gl capability before using
 ... secure spice connections
+vvv upgrade bash_unit to 1.6.0
 vvv bug : installation problem on debian where who command does not reply as expected
    xxx trying to reproduce > unable to reproduce in the different templates I have
    vvv figuring an other way of getting real user name
