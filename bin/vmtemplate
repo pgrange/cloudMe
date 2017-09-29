@@ -142,5 +142,6 @@ if [ ${downloadMode} -eq 1 ] ; then
   rm /tmp/nocloud.$$/${vmTemplate}/nocloud
 
   log "stopping vm"
-  vm_ssh ${vmIp} poweroff >/dev/null 2>&1
+  vmConsolePort=$(vm_console_port ${vmTemplate})
+  echo system_powerdown > /dev/tcp/localhost/${vmConsolePort}
 fi
