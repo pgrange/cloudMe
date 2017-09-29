@@ -9,6 +9,7 @@ x = canceled
 
 new ideas are added on top of the list
 
+... machines should have a fqdn different from hostname (i.e. have a nocloud domain for instance)
 ... commit group service feature
 ... verify gl capability before using
 ... secure spice connections
