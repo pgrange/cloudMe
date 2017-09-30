@@ -120,7 +120,7 @@ vm_run() {
     -D "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.log" \
     --daemonize \
     ${vmNoGui} ${vmMonitor} ${vmSpice} \
-    -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface}
+    -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface} \
     >/dev/null 2>&1
 }
 
