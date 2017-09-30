@@ -25,7 +25,7 @@ vmSystemType=$(uname -m)
 
 vmTemplates="archlinux debian8 centos7 debian9"
 vmTemplatesDetails="
-archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;baca0fd8f40c6384992de3d89027dcb0;14
+archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;bbc1557036fbcbbfd97d793011770db2;6
 debian8;http://n0vember.free.fr/nocloud/templates/debian8;18355f4ce9673be5523f831f062eea28;19
 centos7;http://n0vember.free.fr/nocloud/templates/centos7;0ead1ad701408f5da7dceb48624adf8f;12
 debian9;http://n0vember.free.fr/nocloud/templates/debian9;23d0ed780c6ff5d0210d97384153f856;14
