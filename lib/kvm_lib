@@ -206,6 +206,10 @@ vm_configure() {
 
   local vmIp=$(vm_ip ${vmName})
   vm_ssh ${vmIp} "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname"
+  vmDhclient=$(vm_ssh ${vmIP} "ps auxw | grep dhclient | awk '{print $2}'")
+  vmDhcpcd=$(vm_ssh ${vmIP} "ps auxw | grep dhcpcd | awk '{print $2}'")
+  [ ${vmDhcpcdi:-0} -ne 0 ] && vm_ssh ${vmIP} "dhcpcd -r"
+  [ ${vmDhclient:-0} -ne 0 ] && vm_ssh ${vmIP} "dhclient -r -d ; timeout 1 dhclient -1 -d"
 }
 
 vm_instantiate() {
