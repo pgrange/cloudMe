@@ -19,7 +19,7 @@
 
 # This is kvm implementation of the nocloud lib
 
-vmBaseDir="$HOME/Documents/kvm/VMs"
+vmBaseDir="$HOME/.local/share/nocloud/kvm"
 vmDiskExt="img"
 vmSystemType=$(uname -m)
 
@@ -31,25 +31,44 @@ centos7;http://n0vember.free.fr/nocloud/templates/centos7;0ead1ad701408f5da7dceb
 debian9;http://n0vember.free.fr/nocloud/templates/debian9;23d0ed780c6ff5d0210d97384153f856;14
 "
 
+vm_group_dir() {
+  local vmGroup=$1
+  local vmType=$2
+
+  local vmGroupDir="${vmBaseDir}/${vmGroup}/${vmType}"
+  [ -z "${vmType}" ] && vmGroupDir="${vmBaseDir}/${vmGroup}"
+  echo "${vmGroupDir}"
+}
+
+vm_dir() {
+  local vmName=$1
+  local vmGroup=$2
+  local vmType=$3
+
+  local vmGroupDir=$(vm_group_dir ${vmGroup} ${vmType})
+  local vmDir="${vmGroupDir}/${vmName}"
+  echo "${vmDir}"
+}
+
 vm_disk_create() {
   local vmName=$1
   local vmCreateGroup=$2
   local vmCreateType=$3
   local vmCreateDiskSize=$4
 
+  local vmDir=$(vm_dir ${vmName} ${vmCreateGroup} ${vmCreateType})
   [ -n "${vmCreateType}" ] && vmCreateGroup=${vmCreateGroup}/${vmCreateType}
   local vmDiskCount=0
-  while [ -f "${vmBaseDir}/${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}" ] ; do vmDiskCount=$((vmDiskCount+1)) ; done
-  local vmDisk="${vmCreateGroup}/${vmName}/${vmName}_${vmDiskCount}.${vmDiskExt}"
-  if [ -f "${vmBaseDir}/${vmDisk}" ]
+  while [ -f "${vmDir}/${vmName}_${vmDiskCount}.${vmDiskExt}" ] ; do vmDiskCount=$((vmDiskCount+1)) ; done
+  local vmDisk="${vmName}_${vmDiskCount}.${vmDiskExt}"
+  if [ -f "${vmDir}/${vmDisk}" ]
   then
-    echo "${vmBaseDir}/${vmDisk}"
+    echo "${vmDisk}"
   else
-    local vmDiskPath=$(dirname "${vmBaseDir}/${vmDisk}")
-    mkdir -p "$vmDiskPath" || usage "unable to create ${vmDiskPath}"
-    qemu-img create -q -f qcow2 "${vmBaseDir}/${vmDisk}" ${vmCreateDiskSize}G >/dev/null >&2
+    mkdir -p "$vmDir" || usage "unable to create ${vmDir}"
+    qemu-img create -q -f qcow2 "${vmDir}/${vmDisk}" ${vmCreateDiskSize}G >/dev/null >&2
     ret=$?
-    [ $ret -eq 0 ] && echo "${vmDisk}" || usage "unable to create ${vmBaseDir}/${vmDisk}"
+    [ $ret -eq 0 ] && echo "${vmDisk}" || usage "unable to create ${vmDir}/${vmDisk}"
   fi
 }
 
@@ -58,9 +77,7 @@ vm_stop() {
   local vmGroup=$2
   local vmSubGroup=$3
 
-  vmDir="${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/"
-  [ -z "${vmSubGroup}" ] && vmDir="${vmBaseDir}/${vmGroup}/${vmName}/"
-  vmDir=$(echo "${vmDir}" | sed 's://:/:g')
+  local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
   pgrep -f qemu-system-${vmSystemType} -a | grep "file=${vmDir}" | cut -d " " -f 1 | xargs kill
 }
 
@@ -93,14 +110,16 @@ vm_run() {
   local cpuType="host"
   #local cpuType="qemu64,+vmx"
 
+  local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
+
   local vmUuid=$(uuidgen)
-  [ -f "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.conf" ] && . "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.conf"
+  [ -f "${vmDir}/${vmName}.conf" ] && . "${vmDir}/${vmName}.conf"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
   [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
     echo "${vmExtraDisk}" | \
     sed -r 's/^/</;s/$/>/;s/,/> </g' |
-    sed "s:<:-drive file=${vmBaseDir}/:g" | \
+    sed "s:<:-drive file=${vmDir}/:g" | \
     sed 's/>/,format=qcow2,if=virtio/g' \
   )
 
@@ -111,13 +130,13 @@ vm_run() {
     ${isoOpt} \
     ${memOpt} \
     -boot order=d \
-    -drive file="${vmBaseDir}/${vmDisk}",format=qcow2,if=virtio ${vmExtraDisk} \
+    -drive file="${vmDir}/${vmDisk}",format=qcow2,if=virtio ${vmExtraDisk} \
     -cpu ${cpuType} \
     -smp cpus=${vmCpu},cores=1,maxcpus=${maxCpu} \
     -m ${vmMem} \
     -name ${vmName} \
     -uuid ${vmUuid} \
-    -D "${vmBaseDir}/${vmGroup}/${vmSubGroup}/${vmName}/${vmName}.log" \
+    -D "${vmDir}/${vmName}.log" \
     --daemonize \
     ${vmNoGui} ${vmMonitor} ${vmSpice} \
     -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface} \
@@ -144,10 +163,11 @@ vm_create() {
 
   local gui="gui"
 
-  vmUuid=$(uuidgen)
-  [ -f ${vmBaseDir}/${vmGroup}/${vmType}/${vmName} ] || mkdir -p ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}
+  local vmUuid=$(uuidgen)
+  local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmType})
+  [ -d ${vmDir} ] || mkdir -p ${vmDir}
   vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
-  cat > ${vmBaseDir}/${vmGroup}/${vmType}/${vmName}/${vmName}.conf <<EOF
+  cat > ${vmDir}/${vmName}.conf <<EOF
 vmName=${vmName}
 vmMem=${vmMem}
 vmCpu=${vmCpu}
@@ -166,20 +186,21 @@ vm_clone_disk() {
   local vmDestType=$5
   local vmDest=$6
 
-  local vmSrcDir="${vmBaseDir}/${vmSrcGroup}/${vmSrcType}/${vmSrc}"
-  [ -z "${vmSrcType}" ] && vmSrcDir="${vmBaseDir}/${vmSrcGroup}/${vmSrc}"
+  local vmSrcDir=$(vm_dir ${vmSrc} ${vmSrcGroup} ${vmSrcType})
   local vmSrcCount=$(ps -A -o args | grep qemu-system-${vmSystemType} | grep -v grep | grep "${vmSrcDir}/" | wc -l)
   [ ${vmSrcCount} -ne 0 ] && usage "can't clone a running vm"
   . ${vmSrcDir}/${vmSrc}.conf
-  [ -f "${vmBaseDir}/${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDisk}"
-  chmod a-w "${vmBaseDir}/${vmDisk}"
-  local vmDestDir="${vmDestGroup}/${vmDestType}/${vmDest}"
+  [ -f "${vmSrcDir}/${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDir}/${vmDisk}"
+  chmod a-w "${vmSrcDir}/${vmDisk}"
+
+  local vmDestDir=$(vm_dir ${vmDest} ${vmDestGroup} ${vmDestType})
   local vmDestDiskCount=0
-  while [ -f "${vmBaseDir}/${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}" ] ; do vmDestDiskCount=$((vmDestDiskCount+1)) ; done
-  local vmDestDisk="${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}"
-  mkdir -p "${vmBaseDir}/${vmDestDir}" || usage "unable to create ${vmBaseDir}/${vmDestDir}"
-  qemu-img create -q -f qcow2 -b "${vmBaseDir}/${vmDisk}" "${vmBaseDir}/${vmDestDisk}" >/dev/null >&2
+  while [ -f "${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}" ] ; do vmDestDiskCount=$((vmDestDiskCount+1)) ; done
+  local vmDestDisk="${vmDest}_${vmDestDiskCount}.${vmDiskExt}"
+  mkdir -p "${vmDestDir}" || usage "unable to create ${vmDestDir}"
+  qemu-img create -q -f qcow2 -b "${vmSrcDir}/${vmDisk}" "${vmDestDir}/${vmDestDisk}" >/dev/null >&2
   echo "${vmDestDisk}"
+  set +x
 }
 
 vm_running() {
@@ -188,8 +209,8 @@ vm_running() {
 
   [ "${groupName}" == "*" ] && groupName='[^/]*'
   [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
-  subGroupDir="${vmBaseDir}/${groupName}/${subGroupName}"
-  [ "${groupName}" == "${vmCreateGroup}" ] && subGroupDir="${vmBaseDir}/${groupName}"
+  [ "${groupName}" == "${vmCreateGroup}" ] && unset subGroupDir
+  subGroupDir=$(vm_group_dir ${groupName} ${subGroupName})
 
   for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${subGroupDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
   do
@@ -219,6 +240,9 @@ vm_instantiate() {
   [ -z ${vmGroup} ] && vmGroup=${vmDefaultGroup}
   [ -z ${vmSubGroup} ] && vmSubGroup=${vmDefaultSubGroup}
 
+  local vmDir=$(vm_group_dir ${vmGroup} ${vmSubGroup})
+  local vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateGroup})
+
   local memOpt=${tmplt_vmMem}
   local cpuOpt=${tmplt_vmCpu}
   local dskOpt=
@@ -234,11 +258,9 @@ vm_instantiate() {
     done
   fi
 
-  local vmTemplateGroup=${vmCreateGroup}
-  . <(sed 's/^/tmplt_/' ${vmBaseDir}/${vmTemplateGroup}/${vmTemplate}/${vmTemplate}.conf)
+  . <(sed 's/^/tmplt_/' ${vmTemplateDir}/${vmTemplate}.conf)
 
   local vmList=
-  local vmDir=${vmBaseDir}/${vmGroup}/${vmSubGroup}
   local vmIdx=0
   for vmNum in $(seq 1 ${vmCount})
   do
@@ -247,7 +269,7 @@ vm_instantiate() {
     [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
     [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
-    local vmDisk=$(vm_clone_disk ${vmTemplateGroup} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
+    local vmDisk=$(vm_clone_disk ${vmCreateGroup} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
     [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
     local dskList=
