@@ -23,7 +23,7 @@ vmBaseDir="$HOME/.local/share/nocloud/kvm"
 vmDiskExt="img"
 vmSystemType=$(uname -m)
 
-vmTemplates="archlinux debian8 centos7 debian9"
+vmTemplates="archlinux debian7 debian8 debian9 centos7"
 vmTemplatesDetails="
 archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;8dd086f32e7572184b1533bd3963842a;6
 debian7;http://n0vember.free.fr/nocloud/templates/debian7;6d9099a5de9f489f6128895da987a32a;6
