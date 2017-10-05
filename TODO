@@ -15,7 +15,8 @@ new ideas are added on top of the list
 ... secure spice connections
 ... being able to base templates on templates
 ... modify debian8 template to install libpam-systemd
->>> have a shrink disk feature
+>>> make as much as possible for host to use dnsmasq as a resolver
+xxx have a shrink disk feature (templates have been regenerated shrinked)
 vvv upgrade bash_unit to 1.6.0
 vvv bug : installation problem on debian where who command does not reply as expected
    xxx trying to reproduce > unable to reproduce in the different templates I have
