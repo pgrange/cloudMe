@@ -21,6 +21,7 @@
 
 vmBaseDir="$HOME/.local/share/nocloud/kvm"
 vmDiskExt="img"
+vmConfExt="conf"
 vmSystemType=$(uname -m)
 
 vmTemplates="archlinux debian7 debian8 debian9 centos7"
@@ -31,6 +32,15 @@ debian8;http://n0vember.free.fr/nocloud/templates/debian8;c400e208c5a5e0208bb675
 debian9;http://n0vember.free.fr/nocloud/templates/debian9;95a36d45b0b99dc2db4e3e239f902fb7;6
 centos7;http://n0vember.free.fr/nocloud/templates/centos7;6d706ad889d59a755d68d6367f47fa68;6
 "
+
+vm_conf_file() {
+  local vmName=$1
+  local vmGroup=$2
+  local vmType=$3
+
+  local vmConf="$(vm_dir ${vmName} ${vmGroup} ${vmType})/${vmName}.${vmConfExt}"
+  echo ${vmConf}
+}
 
 vm_group_dir() {
   local vmGroup=$1
@@ -114,7 +124,8 @@ vm_run() {
   local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
 
   local vmUuid=$(uuidgen)
-  [ -f "${vmDir}/${vmName}.conf" ] && . "${vmDir}/${vmName}.conf"
+  local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmSubGroup})
+  [ -f "${vmConf}" ] && . "${vmConf}"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
   [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
@@ -166,9 +177,11 @@ vm_create() {
 
   local vmUuid=$(uuidgen)
   local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmType})
+  local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmType})
   [ -d ${vmDir} ] || mkdir -p ${vmDir}
   vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
-  cat > ${vmDir}/${vmName}.conf <<EOF
+  
+  cat > ${vmConf} <<EOF
 vmName=${vmName}
 vmMem=${vmMem}
 vmCpu=${vmCpu}
@@ -188,9 +201,10 @@ vm_clone_disk() {
   local vmDest=$6
 
   local vmSrcDir=$(vm_dir ${vmSrc} ${vmSrcGroup} ${vmSrcType})
+  local vmSrcConf=$(vm_conf_file ${vmSrc} ${vmSrcGroup} ${vmSrcType})
   local vmSrcCount=$(ps -A -o args | grep qemu-system-${vmSystemType} | grep -v grep | grep "${vmSrcDir}/" | wc -l)
   [ ${vmSrcCount} -ne 0 ] && usage "can't clone a running vm"
-  . ${vmSrcDir}/${vmSrc}.conf
+  . ${vmSrcConf}
   [ -f "${vmSrcDir}/${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDir}/${vmDisk}"
   chmod a-w "${vmSrcDir}/${vmDisk}"
 
@@ -243,6 +257,7 @@ vm_instantiate() {
 
   local vmDir=$(vm_group_dir ${vmGroup} ${vmSubGroup})
   local vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateGroup})
+  local vmTemplateConf=$(vm_conf_file ${vmTemplate} ${vmCreateGroup})
 
   local memOpt=${tmplt_vmMem}
   local cpuOpt=${tmplt_vmCpu}
@@ -259,7 +274,7 @@ vm_instantiate() {
     done
   fi
 
-  . <(sed 's/^/tmplt_/' ${vmTemplateDir}/${vmTemplate}.conf)
+  . <(sed 's/^/tmplt_/' ${vmTemplateConf})
 
   local vmList=
   local vmIdx=0
@@ -281,7 +296,8 @@ vm_instantiate() {
         [ -z "${dskList}" ] && dskList="${dskName}" || dskList="${dskList},${dskName}"
       done
     fi
-    cat > ${vmDir}/${vmName}/${vmName}.conf <<EOF
+    local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmSubGroup})
+    cat > ${vmConf} <<EOF
 vmName=${vmName}
 vmUuid=${vmUuid}
 vmMem=${memOpt}
