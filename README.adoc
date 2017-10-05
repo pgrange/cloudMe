@@ -23,7 +23,7 @@ To install, get a template and instanciate 5 times this template :
 
  sudo make
  vmtemplate -d debian8
- vmrun -g test -m debian8:5:deb
+ vmrun -r test -m debian8:5:deb
 
 == Presentation
 
