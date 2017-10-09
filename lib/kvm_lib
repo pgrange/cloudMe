@@ -242,6 +242,7 @@ vm_configure() {
 
   local vmIp=$(vm_ip ${vmName})
   vm_ssh ${vmIp} "echo ${vmName} > /etc/hostname ; hostname -F /etc/hostname"
+  vm_ssh ${vmIp} "echo ${vmIp} ${vmName}.nocloud ${vmName} >> /etc/hosts"
   vm_ssh ${vmIp} "pgrep dhcpcd && dhcpcd -n"
 }
 
