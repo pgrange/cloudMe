@@ -346,12 +346,12 @@ vm_ssh() {
   sshTryMax=30
   while [ ${sshTry} -le ${sshTryMax} ]
   do
-    ssh -o StrictHostKeyChecking=false -o IgnoreUserKnownHosts=true root@${vmIp} true >/dev/null 2>&1 && break
+    ssh -o StrictHostKeyChecking=false -o UserKnownHostsFile=/dev/null root@${vmIp} true >/dev/null 2>&1 && break
     sleep 1
     sshTry=$((${sshTry}+1))
   done
   [ ${sshTry} -gt ${sshTryMax} ] && return 1
-  ssh -o StrictHostKeyChecking=false -o IgnoreUserKnownHosts=true root@${vmIp} "$@"
+  ssh -o StrictHostKeyChecking=false -o UserKnownHostsFile=/dev/null root@${vmIp} "$@"
 }
 
 vm_ip() {
