@@ -52,11 +52,13 @@ chmod 664 /usr/local/etc/nocloud-dhcp-hostsfile
 chown root:kvm /usr/local/etc/nocloud-dhcp-hostsfile
 
 # try to guess your network dns service
+. etc/nocloud.conf
+[ -f /etc/nocloud.conf ] && . /etc/nocloud.conf
 systemctl status systemd-resolved >/dev/null 2>&1
 if [ $? -eq 0 ] ; then
   systemdResolved=1
-  grep "^DNS=.*192.168.1.1" /etc/systemd/resolved.conf > /dev/null 2>&1 \
-    || sed -i -r 's/^#*(DNS)=(.*)/\1=192.168.1.1 \2/' /etc/systemd/resolved.conf
+  grep "^DNS=.*${bridgeIpAddress}" /etc/systemd/resolved.conf > /dev/null 2>&1 \
+    || sed -i -r 's/^#*(DNS)=(.*)/\1=${bridgeIpAddress} \2/' /etc/systemd/resolved.conf
   grep "^Domains=.*nocloud" /etc/systemd/resolved.conf > /dev/null 2>&1 \
     || sed -i -r 's/^#*(Domains)=(.*)/\1=nocloud \2/' /etc/systemd/resolved.conf
   systemctl restart systemd-resolved >/dev/null 2>&1
@@ -64,14 +66,14 @@ else
   systemctl status resolvconf.service >/dev/null 2>&1
   if [ $? -eq 0 ] ; then
     resolvconf=1
-    [ -f /etc/resolvconf/resolv.conf.d/head ] && resolvconfFile=/etc/resolvconf/resolv.conf.d/head
     [ -f /etc/resolvconf.conf ] && resolvconfFile=/etc/resolvconf.conf
+    [ -f /etc/resolvconf/resolv.conf.d/head ] && resolvconfFile=/etc/resolvconf/resolv.conf.d/head
     if [ -z "${resolvconfFile}" ] ; then
       echo "=== I wasn't able to guess your resolving system"
       echo "=== please add your nocloud ip address as dns server (default 192.168.1.1)"
     fi
-    grep "nameserver 192.168.2.1" ${resolvconfFile} > /dev/null 2>&1 \
-      || echo 'nameserver 192.168.2.1' >> ${resolvconfFile}
+    grep "nameserver ${bridgeIpAddress}" ${resolvconfFile} > /dev/null 2>&1 \
+      || echo "nameserver ${bridgeIpAddress}" >> ${resolvconfFile}
     resolvconf -u
   else
     echo "=== I wasn't able to guess your resolving system"
