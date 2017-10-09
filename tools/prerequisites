@@ -52,8 +52,7 @@ chmod 664 /usr/local/etc/nocloud-dhcp-hostsfile
 chown root:kvm /usr/local/etc/nocloud-dhcp-hostsfile
 
 # try to guess your network dns service
-. etc/nocloud.conf
-[ -f /etc/nocloud.conf ] && . /etc/nocloud.conf
+. etc/nocloud_net.conf
 systemctl status systemd-resolved >/dev/null 2>&1
 if [ $? -eq 0 ] ; then
   systemdResolved=1
