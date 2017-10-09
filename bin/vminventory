@@ -75,7 +75,7 @@ inventory() {
         children=$(echo ${children} | tr ' ' '\n' | sort | uniq | xargs echo)
         echo "    \"children\" : [ ${children} ],"
         echo "    \"vars\": {"
-        echo "      \"ansible_ssh_common_args\": \"-o StrictHostKeyChecking=no\","
+        echo "      \"ansible_ssh_common_args\": \"-o StrictHostKeyChecking=no -o IgnoreUserKnownHosts=yes\","
         echo "      \"ansible_user\": \"root\","
         echo "    },"
         echo "  },"
@@ -100,7 +100,7 @@ inventory() {
     children=$(echo ${children} | tr ' ' '\n' | sort | uniq | xargs echo)
     echo "    \"children\" : [ ${children} ],"
     echo "    \"vars\": {"
-    echo "      \"ansible_ssh_common_args\": \"-o StrictHostKeyChecking=no\","
+    echo "      \"ansible_ssh_common_args\": \"-o StrictHostKeyChecking=no -o IgnoreUserKnownHosts=yes\","
     echo "      \"ansible_user\": \"root\","
     echo "    },"
     echo "  },"
