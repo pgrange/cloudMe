@@ -135,7 +135,11 @@ if [ ${downloadMode} -eq 1 ] ; then
   done
   log "sending public keys"
   ls ~/.ssh/*.pub >/dev/null 2>&1 || usage "you don't have ssh keys"
-  cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -l root -i ${realDir}/../etc/nocloud ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
+  temporaryKey=$(mktemp)
+  cp ${realDir}/../etc/nocloud ${temporaryKey}
+  chmod 600 ${temporaryKey}
+  cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -l root -i ${temporaryKey} ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
+  rm ${temporaryKey}
 
   log "stopping vm"
   vmConsolePort=$(vm_console_port ${vmTemplate})
