@@ -22,6 +22,7 @@
 vmBaseDir="$HOME/.local/share/nocloud/kvm"
 vmDiskExt="img"
 vmConfExt="conf"
+vmPidExt="pid"
 vmSystemType=$(uname -m)
 
 vmTemplates="archlinux debian7 debian8 debian9 centos7"
@@ -32,6 +33,15 @@ debian8;http://n0vember.free.fr/nocloud/templates/debian8;c400e208c5a5e0208bb675
 debian9;http://n0vember.free.fr/nocloud/templates/debian9;95a36d45b0b99dc2db4e3e239f902fb7;6
 centos7;http://n0vember.free.fr/nocloud/templates/centos7;6d706ad889d59a755d68d6367f47fa68;6
 "
+
+vm_pid_file() {
+  local vmName=$1
+  local vmGroup=$2
+  local vmType=$3
+
+  local vmPid="$(vm_dir ${vmName} ${vmGroup} ${vmType})/${vmName}.${vmPidExt}"
+  echo ${vmPid}
+}
 
 vm_conf_file() {
   local vmName=$1
@@ -135,12 +145,25 @@ vm_run() {
     sed 's/>/,format=qcow2,if=virtio/g' \
   )
 
+  local pidFile=$(vm_pid_file ${vmName} ${vmGroup} ${vmSubGroup})
+  if [ -f ${pidFile} ] ; then
+    local pid=$(cat ${pidFile})
+    ps ${pid} >/dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+      log_error "a VM named ${vmName} already exists with pid ${pid}"
+      return
+    else
+      rm ${pidFile}
+    fi
+  fi
+
   local vmMac=$(vm_mac_gen ${vmUuid})
 
   qemu-system-${vmSystemType} \
     -enable-kvm \
     ${isoOpt} \
     ${memOpt} \
+    -pidfile ${pidFile} \
     -boot order=d \
     -drive file="${vmDir}/${vmDisk}",format=qcow2,if=virtio ${vmExtraDisk} \
     -cpu ${cpuType} \
@@ -264,6 +287,7 @@ vm_instantiate() {
   local cpuOpt=${tmplt_vmCpu}
   local dskOpt=
   local guiOpt=
+  local nameOpt=
   if [ -n "${vmOpts}" ] ; then
     for vmOpt in ${vmOpts}
     do
