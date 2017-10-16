@@ -95,7 +95,7 @@ do
     f) groupConfFile="$OPTARG" ;;
     g) vmGroup="$OPTARG" ;;
     m) [ -n "${specLines}" ] && specLines="${specLines}\n$OPTARG" || specLines="$OPTARG" ;;
-    g) guiOpt="gui" ;;
+    G) guiOpt="gui" ;;
     b) backgroundMode=1 ;;
     h) usage ;;
   esac
