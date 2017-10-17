@@ -7,8 +7,10 @@ SERVICE= $(wildcard *.service)
 .PHONY: all $(SERVICE)
 
 all: $(SERVICE)
-	@systemctl enable nocloud-bridge --now
-	@systemctl enable nocloud-dnsmasq --now
+	@systemctl enable nocloud-bridge
+	@systemctl enable nocloud-dnsmasq
+	@systemctl start nocloud-bridge
+	@systemctl start nocloud-dnsmasq
 
 $(SERVICE):
 	$(INSTALL) $(SINSTALL_OPTS) $@ $(PREFIX)/$@
