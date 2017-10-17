@@ -4,7 +4,7 @@ mod_load() {
   local module=$1
   local loaded=$(lsmod | grep "^${module} " | wc -l)
   if [ ${loaded} -eq 1 ] ; then
-    local deps=$(lsmod | grep "^${module} " | sed 's/^.* //')
+    local deps=$(lsmod | grep "^${module} " | sed 's/ *$//;s/^.* //')
     if [ ${deps} -eq 0 ] ; then
       rmmod ${module}
       modprobe ${module}
