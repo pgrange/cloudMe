@@ -93,6 +93,7 @@ case ${modeName} in
     [ -z ${vmName} ] && usage "VM name is mandatory"
     vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
     port=$(vm_spice_port "${vmName}")
+    which spicy >/dev/null 2>&1 || usage "spicy is needed for this feature"
     spicy -h localhost -p $port -w ${vmSpicePassword} --class=qemu-system-${vmSystemType} >/dev/null 2>&1 &
     ;;
   "template")
