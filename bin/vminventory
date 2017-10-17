@@ -19,12 +19,13 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) [ --list | -h | -L ]
+  echo "usage : $(basename $0) [ --list | -h | -L ] | -v
   this tool is intended to be used as inventory by ansible, ansible-playbook...
   but if you don't pass any option, you will have a list of running VMs
   --list : outputs json inventory, suitable for ansible dynamic inventory
   -L : list existing groups
   -h : display this help
+  -v : display version and exit
   ">&2
   exit 1
 }
@@ -125,5 +126,8 @@ case "$1" in
     ;;
   "-h")
     usage
+    ;;
+  "-v")
+    version
     ;;
 esac

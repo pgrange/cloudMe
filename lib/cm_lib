@@ -19,6 +19,8 @@
 
 # Following variables are default values. They can be redefined in .nocloud.conf, ~/.config/nocloud/nocloud.conf or /etc/nocloud.conf
 
+noCloudVersion=1.3
+
 vmMem=512
 vmMemVid=12
 vmCpu=2
@@ -53,6 +55,11 @@ vmBackend=kvm
 . ${realDir}/${libDir}/${vmBackend}_lib
 
 # Common functions
+
+version() {
+  echo "nocloud ${noCloudVersion}"
+  exit
+}
 
 nonNumeric() {
   noNum=$(echo "$@" | sed "s/[^0-9]//g")

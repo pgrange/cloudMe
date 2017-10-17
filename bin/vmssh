@@ -19,8 +19,10 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) <VM>" >&2
-  echo "connects with SSH to the VM specified as name or IP.">&2
+  echo "usage : $(basename $0) <VM>
+  -h : display this help
+  -v : display version and exit
+connects with SSH to the VM specified as name or IP.">&2
   exit 1
 }
 
@@ -33,6 +35,8 @@ libName=cm_lib
 
 vmName=$1
 [ -z "${vmName}" ] && usage "a machine name or IP is expected as parameter"
+[ "${vmName}" -eq "-h" ] && usage
+[ "${vmName}" -eq "-v" ] && version
 
 shift
 args=$@

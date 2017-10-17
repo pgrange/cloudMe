@@ -26,7 +26,8 @@ usage() {
   -c : create a template ou t of iso
   -i : specify isoName
   -L : list existing templates
-  -h : display this help" >&2
+  -h : display this help
+  -v : display version and exit" >&2
   exit 1
 }
 
@@ -41,7 +42,7 @@ vmTemplate=
 downloadMode=0
 createMode=0
 isoName=
-while getopts d:c:i:Lh name
+while getopts d:c:i:Lhv name
 do
   case $name in
     d)
@@ -64,6 +65,9 @@ do
       ;;
     h)
       usage
+      ;;
+    v)
+      version
       ;;
   esac
 done

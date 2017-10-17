@@ -19,7 +19,9 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) <TEMPLATE>" >&2
+  echo "usage : $(basename $0) <TEMPLATE>
+  -h : display this help
+  -v : display version and exit" >&2
   exit 1
 }
 
@@ -32,6 +34,8 @@ libName=cm_lib
 
 vmName=$1
 [ -z "${vmName}" ] && usage "a template name is expected as parameter"
+[ "${vmName}" -eq "-h" ] && usage
+[ "${vmName}" -eq "-v" ] && version
 
 # Template start
 log "starting ${vmName}"

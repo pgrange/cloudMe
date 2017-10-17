@@ -31,7 +31,8 @@ usage() {
   -T : launch a template
   -s : stop group
   -d : when stopping group, destroy vms
-  -h : display this help" >&2
+  -h : display this help
+  -v : display version and exit" >&2
   exit 1
 }
 
@@ -48,7 +49,7 @@ vmName=
 groupName="*"
 subGroupName="*"
 stopDestroy=0
-while getopts m:c:sg:t:T:dh name
+while getopts m:c:sg:t:T:dhv name
 do
   case $name in
     m)
@@ -73,6 +74,7 @@ do
        ;;
     d) stopDestroy=1 ;;
     h) usage ;;
+    v) version ;;
   esac
 done
 shift $(($OPTIND-1))

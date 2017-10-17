@@ -28,6 +28,7 @@ usage() {
   -G : when running VMs have a GUI for each one
   -b : background mode. Just launcheds VM (with -f or -r) and exit.
   -h : display this help
+  -v : display version and exit
   NOTE : SIGINT (or ^C) will stop all the managed VMs and will then destoy them. ${stopSignal} will stop and quit as well, but will leave the machiness in place for you to relaunch then at will (that's what the -r option is for)." >&2
   exit 1
 }
@@ -89,7 +90,7 @@ vmName=
 guiOpt=
 specLines=
 backgroundMode=0
-while getopts f:g:m:Gbh name
+while getopts f:g:m:Gbhv name
 do
   case $name in
     f) groupConfFile="$OPTARG" ;;
@@ -98,6 +99,7 @@ do
     G) guiOpt="gui" ;;
     b) backgroundMode=1 ;;
     h) usage ;;
+    v) version ;;
   esac
 done
 shift $(($OPTIND-1))
