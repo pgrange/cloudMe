@@ -19,7 +19,7 @@
 
 # Following variables are default values. They can be redefined in .nocloud.conf, ~/.config/nocloud/nocloud.conf or /etc/nocloud.conf
 
-noCloudVersion=1.7
+noCloudVersion=1.8
 
 vmMem=512
 vmMemVid=12
