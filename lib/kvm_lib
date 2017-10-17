@@ -115,7 +115,6 @@ vm_run() {
   [ "${isoName} " == "none " ] && isoOpt=""
 
   local vmNoGui="-display sdl -vga virtio -no-quit"
-  [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
   local spicePort=$(free_port 1)
   local telnetPort=$(free_port 2)
@@ -137,6 +136,8 @@ vm_run() {
   local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmSubGroup})
   [ -f "${vmConf}" ] && . "${vmConf}"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
+
+  [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
 
   [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
     echo "${vmExtraDisk}" | \
@@ -329,6 +330,7 @@ vmMem=${memOpt}
 vmCpu=${cpuOpt}
 vmDisk=${vmDisk}
 vmExtraDisk=${dskList}
+vmGui=${guiOpt}
 EOF
     vm_run ${vmName} ${vmGroup} ${vmSubGroup} none ${guiOpt}
     vmList="${vmList} ${vmName}"
