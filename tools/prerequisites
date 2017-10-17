@@ -24,27 +24,12 @@ echo "%kvm ALL=(ALL) NOPASSWD: /usr/local/sbin/vmnat" > /etc/sudoers.d/kvm-iptab
 
 # Check user
 user_name=$(stat -c %U $(tty))
-other_user_name=""
 if [ "${user_name}" == root ] ; then
-  echo installing as root...
-  echo -n "do you want to set up an other user to use nocloud ? (yes/no)"
-  read other_user
-  case "${other_user}" in
-    "y|yes")
-      while $(grep "^${other_user_name}:" /etc/passwd)
-      do
-        echo -n "give te user's name : "
-        read other_user_name
-      done
-      user_name=${other_user_name}
-      ;;
-    "*")
-      echo "I don't think using root is a good idea, but OK"
-      ;;
-  esac
+   echo "to allow a user to use nocloud, you will need to add him to the kvm group"
+else
+  echo "adding user ${user_name} in kvm group"
+  usermod -a -G kvm ${user_name}
 fi
-echo "adding user ${user_name} in kvm group"
-usermod -a -G kvm ${user_name}
 
 # initiate dhcp-hostsfile
 touch /usr/local/etc/nocloud-dhcp-hostsfile
