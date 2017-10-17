@@ -142,7 +142,7 @@ if [ ${downloadMode} -eq 1 ] ; then
   temporaryKey=$(mktemp)
   cp ${realDir}/../etc/nocloud ${temporaryKey}
   chmod 600 ${temporaryKey}
-  cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -o UserKnownHostsFile=/dev/null -l root -i ${temporaryKey} ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
+  cat ~/.ssh/*.pub | ssh -o StrictHostKeyChecking=False -o CheckHostIp=False -o UserKnownHostsFile=/dev/null -l root -i ${temporaryKey} ${vmIp} tee -a /root/.ssh/authorized_keys >/dev/null
   rm ${temporaryKey}
 
   log "stopping vm"
