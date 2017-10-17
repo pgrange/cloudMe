@@ -35,8 +35,8 @@ libName=cm_lib
 
 vmName=$1
 [ -z "${vmName}" ] && usage "a machine name or IP is expected as parameter"
-[ "${vmName}" -eq "-h" ] && usage
-[ "${vmName}" -eq "-v" ] && version
+[ "${vmName}" == "-h" ] && usage
+[ "${vmName}" == "-v" ] && version
 
 shift
 args=$@

@@ -34,8 +34,8 @@ libName=cm_lib
 
 vmName=$1
 [ -z "${vmName}" ] && usage "a template name is expected as parameter"
-[ "${vmName}" -eq "-h" ] && usage
-[ "${vmName}" -eq "-v" ] && version
+[ "${vmName}" == "-h" ] && usage
+[ "${vmName}" == "-v" ] && version
 
 # Template start
 log "starting ${vmName}"
