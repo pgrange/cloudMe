@@ -7,5 +7,6 @@ eval $(grep ^EnvironmentFile= ${service_file})
 file_content=$(cat ${service_file})
 file_content=$(echo -e "${file_content}" | sed -r 's/(--listen-address=)[^ ]*( )/\1'${bridgeIpAddress}'\2/')
 file_content=$(echo -e "${file_content}" | sed -r 's/(--dhcp-range=)[^ ]*( )/\1'${bridgeDhcpStart}','${bridgeDhcpStop}'\2/')
+file_content=$(echo -e "${file_content}" | sed -r '/^EnvironmentFile=/d')
 
 echo -e "${file_content}" > ${service_file}
