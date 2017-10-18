@@ -14,4 +14,5 @@ all: $(SERVICE)
 
 $(SERVICE):
 	$(INSTALL) $(SINSTALL_OPTS) $@ $(PREFIX)/$@
+	@../tools/service_devar
 	@systemctl daemon-reload

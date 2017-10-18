@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+service_file=/etc/systemd/system/nocloud-dnsmasq.service
+
+eval $(grep ^EnvironmentFile= ${service_file})
+. ${EnvironmentFile}
+file_content=$(cat ${service_file})
+file_content=$(echo -e "${file_content}" | sed -r 's/(--listen-address=)[^ ]*( )/\1'${bridgeIpAddress}'\2/')
+file_content=$(echo -e "${file_content}" | sed -r 's/(--dhcp-range=)[^ ]*( )/\1'${bridgeDhcpStart}','${bridgeDhcpStop}'\2/')
+
+echo -e "${file_content}" > ${service_file}
