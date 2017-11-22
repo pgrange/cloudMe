@@ -18,6 +18,7 @@ new ideas are added on top of the list
 ... use environment variable to restrict to a group
 ... allow the use of spicec instead of spicy (for installation on debian) or set spicy as optionnal dependency
 >>> make as much as possible for host to use dnsmasq as a resolver
+vvv snapshots
 vvv every tool can display version
 vvv use pid files (-pidfile)
 xxx have a shrink disk feature (templates have been regenerated shrinked)

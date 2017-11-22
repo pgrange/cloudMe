@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+#    (c) 2016-2017, n0vember <n0vember@half-9.net>
+#
+#    This file is part of nocloud.
+#
+#    nocloud is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    nocloud is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with nocloud.  If not, see <http://www.gnu.org/licenses/>.
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) -s <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -r <VM_NAME> -i <SNAPTAG> [ -g <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -d <VM_NAME> -i <SNAPTAG> [ -g <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -l <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
+  Manages VMs snapshots. VM must be in a running state.
+  -s : creates a snapshot of VM_NAME
+  -r : restores VM_NAME in the state of the snapshot with tag SNAPTAG
+  -d : deletes VM_NAME snapshot with tag SNAPTAG
+  -l : list snapshots for VM_NAME
+  -i : specify snapshot TAG
+  -g and -t : optionnaly specify group and type
+  -h : display this help
+  -v : display version and exit" >&2
+  exit 1
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+mode=0
+modeName=
+vmName=
+groupName="*"
+subGroupName="*"
+while getopts s:r:d:l:i:g:t:hv name
+do
+  case $name in
+    s)
+      vmName="$OPTARG"
+      modeName="snapshot"
+      mode=$((mode+1))
+      ;;
+    r)
+      vmName="$OPTARG"
+      modeName="restore"
+      mode=$((mode+1))
+      ;;
+    d)
+      vmName="$OPTARG"
+      modeName="delete"
+      mode=$((mode+1))
+      ;;
+    l)
+      vmName="$OPTARG"
+      modeName="list"
+      mode=$((mode+1))
+      ;;
+    i) snapTag="$OPTARG" ;;
+    g) groupName="$OPTARG" ;;
+    t) subGroupName="$OPTARG" ;;
+    h) usage ;;
+    v) version ;;
+  esac
+done
+shift $(($OPTIND-1))
+
+[ ${mode} -eq 0 ] && usage "One mode must be specified between -s, -r, -d and -l"
+[ ${mode} -gt 1 ] && usage "Only one mode to specify between -s, -r, -d and -l"
+
+case ${modeName} in
+  "snapshot")
+    [ -z ${vmName} ] && usage "VM name is mandatory"
+    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    vm_console_command ${vmName} savevm
+    ;;
+  "list")
+    [ -z ${vmName} ] && usage "VM name is mandatory"
+    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    vm_console_command ${vmName} info snapshots | tail -n +2 | grep -v "^(qemu)"
+    ;;
+  "restore")
+    [ "${groupName}" == "*" ] && groupName=$(vm_group ${vmName})
+    [ "${subGroupName}" == "*" ] && subGroupName=$(vm_type ${vmName})
+    [ -z ${vmName} ] && usage "VM name is mandatory"
+    [ -z ${snapTag} ] && usage "snapshot tag is mandatory"
+    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    vm_stop ${vmName} ${groupName} ${subGroupName}
+    vm_run ${vmName} ${groupName} ${subGroupName}
+    vm_console_command ${vmName} loadvm ${snapTag} >/dev/null 2>&1
+    ;;
+  "delete")
+    [ -z ${vmName} ] && usage "VM name is mandatory"
+    [ -z ${snapTag} ] && usage "snapshot tag is mandatory"
+    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    vm_console_command ${vmName} delvm ${snapTag}
+    ;;
+esac

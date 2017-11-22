@@ -99,7 +99,8 @@ vm_stop() {
   local vmSubGroup=$3
 
   local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
-  pgrep -f qemu-system-${vmSystemType} -a | grep "file=${vmDir}" | cut -d " " -f 1 | xargs kill
+  vm_console_command ${vmName} quit
+  rm $(vm_pid_file ${vmName} ${vmGroup} ${vmSubGroup})
 }
 
 vm_run() {
@@ -205,7 +206,7 @@ vm_create() {
   local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmType})
   [ -d ${vmDir} ] || mkdir -p ${vmDir}
   vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
-  
+
   cat > ${vmConf} <<EOF
 vmName=${vmName}
 vmMem=${vmMem}
@@ -432,6 +433,18 @@ vm_console_socket() {
   local vmName=$1
 
   pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-monitor //;s/ .*$//' | cut -d, -f1 | cut -d: -f2
+}
+
+vm_console_command() {
+  local vmName=$1
+  shift
+  local vmCmd=$@
+  local vmSocket=$(vm_console_socket "${vmName}")
+  if [ "${vmCmd}" != "" ] ; then
+    echo "${vmCmd}" | socat - ${vmSocket} | tail -n +2 | grep -v "^(qemu)"
+  else
+    cat | socat - ${vmSocket}
+  fi
 }
 
 vm_spice_port() {
