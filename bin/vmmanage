@@ -86,8 +86,8 @@ case ${modeName} in
   "manage")
     [ -z ${vmName} ] && usage "VM name is mandatory"
     vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
-    port=$(vm_console_port "${vmName}")
-    telnet localhost $port
+    socket=$(vm_console_socket "${vmName}")
+    cat | socat - ${socket}
     ;;
   "console")
     [ -z ${vmName} ] && usage "VM name is mandatory"

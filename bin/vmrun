@@ -166,7 +166,7 @@ while [ -n "${vms}" ] ; do
       if [ -n "${ip}" ] ; then
         log "${vmWithoutIp} has IP ${ip}"
         vmsWithoutIp=$(echo "${vmsWithoutIp}" | sed "s/ *${vmWithoutIp} */ /" | sed -r 's/^ *(.*) *$/\1/')
-        log "${vmWithoutIp} has console port $(vm_console_port ${vmWithoutIp})"
+        log "${vmWithoutIp} has console socket $(vm_console_socket ${vmWithoutIp})"
         log "${vmWithoutIp} has spice port $(vm_spice_port ${vmWithoutIp})"
         loopOperations=$((loopOperations+1))
       fi

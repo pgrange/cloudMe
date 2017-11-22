@@ -117,8 +117,8 @@ vm_run() {
   local vmNoGui="-display sdl -vga virtio -no-quit"
 
   local spicePort=$(free_port 1)
-  local telnetPort=$(free_port 2)
-  local vmMonitor="-monitor telnet:127.0.0.1:${telnetPort},server,nowait"
+  mkdir -p /tmp/nocloud.${USER}/${vmGroup}/${vmSubGroup}/
+  local vmMonitor="-monitor unix:/tmp/nocloud.${USER}/${vmGroup}/${vmSubGroup}/${vmName},server,nowait"
   local vmSpice="-spice port=${spicePort},addr=localhost,password=${vmSpicePassword}"
 
   local memOpt=""
@@ -176,6 +176,7 @@ vm_run() {
     --daemonize \
     ${vmNoGui} ${vmMonitor} ${vmSpice} \
     -net nic,model=virtio,macaddr=${vmMac} -net bridge,br=${bridgeInterface} \
+    ${vmExtraOpts} \
     >/dev/null 2>&1
 }
 
@@ -427,10 +428,10 @@ vm_type() {
   vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 2
 }
 
-vm_console_port() {
+vm_console_socket() {
   local vmName=$1
 
-  pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-monitor //;s/ .*$//' | cut -d, -f1 | cut -d: -f3
+  pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-monitor //;s/ .*$//' | cut -d, -f1 | cut -d: -f2
 }
 
 vm_spice_port() {
