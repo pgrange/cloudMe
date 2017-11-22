@@ -3,6 +3,7 @@
 service_file=/etc/systemd/system/nocloud-dnsmasq.service
 
 eval $(grep ^EnvironmentFile= ${service_file})
+[ -z "${EnvironmentFile}" ] && exit
 . ${EnvironmentFile}
 file_content=$(cat ${service_file})
 file_content=$(echo -e "${file_content}" | sed -r 's/(--listen-address=)[^ ]*( )/\1'${bridgeIpAddress}'\2/')
