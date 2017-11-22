@@ -71,6 +71,21 @@ vm_dir() {
   echo "${vmDir}"
 }
 
+vm_disks() {
+  local vmName=$1
+  local vmGroup=$2
+  local vmType=$3
+
+  local vmConfFile=$(vm_conf_file ${vmName} ${vmGroup} ${vmType})
+  local vmDisk
+  local vmExtraDisk
+  eval $(grep ^vmDisk= ${vmConfFile})
+  eval $(grep ^vmExtraDisk= ${vmConfFile})
+  echo -n "${vmDisk}"
+  [ -n "${vmExtraDisk}" ] && echo -n " ${vmExtraDisk}" | tr "," " "
+  echo
+}
+
 vm_disk_create() {
   local vmName=$1
   local vmCreateGroup=$2
@@ -419,14 +434,31 @@ vm_name() {
 
 vm_group() {
   local vmName=$1
+  local runningVmByName=$(vm_running "*" "*" | grep ${vmName} | wc -l)
 
-  vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 1
+  if [ ${runningVmByName} -gt 0 ] ; then
+    vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 1
+  else
+    local vmByName=$(ls -d ${vmBaseDir}/*/*/${vmName} | wc -l)
+    [ ${vmByName} -eq 0 ] && error "No VM named ${vmName}"
+    [ ${vmByName} -gt 1 ] && error "There are multiple VMs named ${vmName}"
+    (cd ${vmBaseDir} ; ls -d */*/${vmName} | sed 's:/.*::')
+  fi
 }
 
 vm_type() {
   local vmName=$1
+  local runningVmByName=$(vm_running "*" "*" | grep ${vmName} | wc -l)
 
-  vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 2
+  if [ ${runningVmByName} -gt 0 ] ; then
+    vm_running "*" "*" | grep ${vmName} | cut -d ' ' -f 2 | cut -d / -f 2
+  else
+    local vmByName=$(ls -d ${vmBaseDir}/*/*/${vmName} | wc -l)
+    [ ${vmByName} -eq 0 ] && error "No VM named ${vmName}"
+    [ ${vmByName} -gt 1 ] && error "There are multiple VMs named ${vmName}"
+    local vmGroup=$(vm_group ${vmName})
+    (cd ${vmBaseDir}/${vmGroup} ; ls -d */${vmName} | sed 's:/.*::')
+  fi
 }
 
 vm_console_socket() {

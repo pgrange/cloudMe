@@ -374,15 +374,17 @@ vmnat -d 8080:tst00:80
 
 === vmsnap - take snapshots and restore them
 
-This command allows four actions :
+This command allows four actions described below.
 
-Take a snapshot :
+==== Take a snapshot
 
 ----
 vmsnap -s tst00
 ----
 
-List snapshots :
+Depending on actual VM state, activity, memory size, etc, action will take some time or will none.
+
+==== List snapshots
 
 ----
 vmsnap -l tst00
@@ -393,13 +395,17 @@ ID        TAG                 VM SIZE                DATE       VM CLOCK
 --        vm-20171122145358      207M 2017-11-22 14:53:58   00:07:19.164
 ----
 
-Restore snapshot :
+Snapshots named vm-YYYYmmddHHMMSS correspond to snapshots taken on a running VM. Snapshots named vd-YYYYmmddHHMMSS correspond to snapshots taken on a stopped VM.
+
+==== Restore snapshot
 
 ----
 vmsnap -r tst00 -i vm-20171122145147
 ----
 
-Delete a snapshot :
+Restoring a vm- snapshot results in a running VM, whatever its original state was. Restoring a vd- snapshot results in a stopped VM, here again, whatever current state is.
+
+==== Delete a snapshot
 
 ----
 vmsnap -d tst00 -i vm-20171122145147
