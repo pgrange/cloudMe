@@ -6,8 +6,6 @@
 
 = nocloud
 
-!!! If you were using nocloud before version 1.1, thank you ! ... but you will have to migrate your templates. This can be done using the script *nocloud_1.0_templates_migration* at the project root.
-
 toc::[]
 
 <<<
