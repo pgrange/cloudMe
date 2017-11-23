@@ -27,6 +27,11 @@ RELEASE 2.0
    ... adapt scripts to take NOCLOUD_CONTEXT variable as context if none specified, default context is then named default
    ... make scripts options as uniform as possible
    ... abandon getopts ?
+... vmrun - make -b default behaviour
+
+RELEASE 1.8
+
+... refacto - vmsnap is no beautiful code, make it right
 
 WORK DONE UNTIL 1.8
 
