@@ -7,17 +7,29 @@ v = done
 ! = bug
 x = canceled
 
-new ideas are added on top of the list
+New ideas are added on top of the list and are sometimes reordered.
 
-... machines should have a fqdn different from hostname (i.e. have a nocloud domain for instance)
-... commit group service feature
-... verify gl capability before using
-... secure spice connections
-... being able to base templates on templates
-... modify debian8 template to install libpam-systemd
-... use environment variable to restrict to a group
-... allow the use of spicec instead of spicy (for installation on debian) or set spicy as optionnal dependency
->>> make as much as possible for host to use dnsmasq as a resolver
+... security - secure spice connections
+... templates - being able to base templates on templates
+... templates - modify debian8 template to install libpam-systemd
+... network - machines should have a fqdn different from hostname (i.e. have a nocloud domain for instance)
+>>> network - make as much as possible for host to use dnsmasq as a resolver
+... installation - commit group service feature
+... installation - create systemv services for those who refuse systemd
+... installation - allow the use of spicec instead of spicy (for installation on debian) or set spicy as optionnal dependency
+... installation - verify gl capability before using
+
+RELEASE 2.0
+
+... core - use environment variable to restrict to a group
+   ... rename the concept of group as context. All references across scripts must be uniform
+   ... make type the only name across scripts for type and subgroup
+   ... adapt scripts to take NOCLOUD_CONTEXT variable as context if none specified, default context is then named default
+   ... make scripts options as uniform as possible
+   ... abandon getopts ?
+
+WORK DONE UNTIL 1.8
+
 vvv snapshots
    vvv snapshots on live VM (using console)
    vvv snapshots on stopped VM (using "qemu-img snapshot")
