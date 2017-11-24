@@ -32,6 +32,7 @@ RELEASE 2.0
 RELEASE 1.8
 
 ... refacto - vmsnap is no beautiful code, make it right
+vvv insert and eject iso and floppy on a running VM
 
 WORK DONE UNTIL 1.8
 
