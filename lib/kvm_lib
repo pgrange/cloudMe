@@ -123,7 +123,7 @@ vm_run() {
   local vmGroup=$2
   local vmSubGroup=$3
   local isoName=$4
-  local guiOpt=$5
+  local vmGui=$5
 
   local isoOpt=""
   [ -f "${isoDir}/${isoName}" ] && isoOpt="-cdrom ${isoDir}/${isoName}"
@@ -153,7 +153,7 @@ vm_run() {
   [ -f "${vmConf}" ] && . "${vmConf}"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
-  [ "${guiOpt} " == "gui " ] || vmNoGui="--display none"
+  [ "${vmGui} " == "gui " ] || vmNoGui="--display none"
 
   [ -n "${vmExtraDisk}" ] && vmExtraDisk=$(
     echo "${vmExtraDisk}" | \
