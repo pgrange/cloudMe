@@ -120,8 +120,7 @@ case ${modeName} in
   "template")
     [ -z ${vmName} ] && usage "VM name is mandatory"
     vmGroup=${vmCreateGroup}
-    eval $(grep "^vmDisk=" ${vmBaseDir}/${vmGroup}/${vmName}/${vmName}.conf)
-    chmod +w ${vmBaseDir}/${vmDisk}
+    chmod +w $(vm_dir ${vmName} ${vmGroup})/$(vm_disks ${vmName} ${vmGroup} | head -1)
     is_vm_running ${vmName} ${vmGroup} > /dev/null && usage "Machine is already running" || vm_run ${vmName} ${vmGroup} ""
     ;;
   "stop")
