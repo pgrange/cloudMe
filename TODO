@@ -9,6 +9,7 @@ x = canceled
 
 New ideas are added on top of the list and are sometimes reordered.
 
+!!! bug - vmtemplate - include a trap to cleanup when ^C hit while downloading (https://github.com/n0vember/nocloud/issues/16)
 ... security - secure spice connections
 ... templates - being able to base templates on templates
 ... templates - modify debian8 template to install libpam-systemd
