@@ -146,6 +146,5 @@ if [ ${downloadMode} -eq 1 ] ; then
   rm ${temporaryKey}
 
   log "stopping vm"
-  vmConsolePort=$(vm_console_port ${vmTemplate})
-  echo system_powerdown > /dev/tcp/localhost/${vmConsolePort}
+  vm_console_command ${vmName} system_powerdown
 fi
