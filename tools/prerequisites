@@ -64,3 +64,15 @@ else
     echo "=== please add your nocloud ip address as dns server (default 192.168.1.1)"
   fi
 fi
+
+# Fix ubuntu bug where no setuid bit on qemu-bridge-helper
+helper=/usr/lib/qemu/qemu-bridge-helper
+if [ -f ${helper} ] ; then
+  helper_mod=$(stat --format=%a ${helper})
+  setuidbit=$((helper_mod>>12))
+  if [ ${setuidbit} -eq 0 ] ; then
+    echo "fixing bridge helper permissions"
+    helper_mod=$((helper_mod+4000))
+    chmod ${{helper_mod} ${helper}
+  fi
+fi
