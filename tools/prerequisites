@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ko() { echo "$1 NOT FOUND."; }
+ko() { echo "$1 NOT FOUND."; exit 1; }
 ok() { echo "$1 found."; }
 tst() {
   cmd=$1
