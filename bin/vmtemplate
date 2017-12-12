@@ -88,6 +88,8 @@ if [ ${createMode} -eq 1 ] ; then
 fi
 
 if [ ${downloadMode} -eq 1 ] ; then
+  trap "[ -f ${vmTemplateDir}/.downloaded ] || rm -rvf ${vmTemplateDir} ; exit 1" SIGINT SIGTERM
+
   echo ${vmTemplates} | tr " " "\n" | grep "^${vmTemplate}$" >/dev/null || usage "unknown template"
   vmTemplateBaseUrl=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 2)
   vmTemplateBaseMd5=$(echo "${vmTemplatesDetails}" | grep "^${vmTemplate};" | cut -d";" -f 3)
@@ -147,4 +149,6 @@ if [ ${downloadMode} -eq 1 ] ; then
 
   log "stopping vm"
   vm_console_command ${vmName} system_powerdown
+
+  touch .downloaded
 fi
