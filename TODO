@@ -20,23 +20,23 @@ New ideas are added on top of the list and are sometimes reordered.
 ... installation - allow the use of spicec instead of spicy (for installation on debian) or set spicy as optionnal dependency
 ... installation - verify gl capability before using
 
+RELEASE 2.1
+
+... templates - create VMs on host, no download (http://ask.xmodulo.com/mount-qcow2-disk-image-linux.html)
+
 RELEASE 2.0
 
-... core - use environment variable to restrict to a group
+>>> core - use environment variable to restrict to a group
+   vvv make group option available in vminventory
    ... rename the concept of group as context. All references across scripts must be uniform
    ... make type the only name across scripts for type and subgroup
    ... adapt scripts to take NOCLOUD_CONTEXT variable as context if none specified, default context is then named default
    ... make scripts options as uniform as possible
-   ... abandon getopts ?
-... vmrun - make -b default behaviour
-
-RELEASE 1.9
-
-... templates - create VMs on host, no download (http://ask.xmodulo.com/mount-qcow2-disk-image-linux.html)
+   ... abandon getopts ? find a way to have long options
+vvv vmrun - make -b default behaviour
 
 RELEASE 1.8
 
-vvv vmrun - make -b the default
 vvv insert and eject iso and floppy on a running VM
 
 WORK DONE UNTIL 1.8
