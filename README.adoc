@@ -318,6 +318,8 @@ ln -s /usr/local/bin/vminventory inventory
 ansible-playbook -i inventory playbook.yml
 ----
 
+the scope of vminventory can be limited to a single group, using -g option. This affects standard behaviour and --list option, but has no effect on -L which will list everything.
+
 === vmmanage - managing running VMs
 
 vmmanage deals with running VMs and groups maintainance. It can:
