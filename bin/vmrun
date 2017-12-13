@@ -26,7 +26,8 @@ usage() {
   -f <FILE> : instanciate servers based on a configuration file. View documentation for file format.
   -m : give a vm specification (as provided to -f option)
   -G : when running VMs have a GUI for each one
-  -b : background mode. Just launcheds VM (with -f or -r) and exit.
+  -b : background mode. Just launch VM (with -f or -m) and exit (default mode, kept for compatibility).
+  -d : daemon mode. Launch VM and wait for ^C to stop and destroy all machines. Used to launch as a service.
   -h : display this help
   -v : display version and exit
   NOTE : SIGINT (or ^C) will stop all the managed VMs and will then destoy them. ${stopSignal} will stop and quit as well, but will leave the machiness in place for you to relaunch then at will (that's what the -r option is for)." >&2
@@ -89,8 +90,8 @@ libName=cm_lib
 vmName=
 guiOpt=
 specLines=
-backgroundMode=0
-while getopts f:g:m:Gbhv name
+backgroundMode=1
+while getopts f:g:m:Gbdhv name
 do
   case $name in
     f) groupConfFile="$OPTARG" ;;
@@ -98,6 +99,7 @@ do
     m) [ -n "${specLines}" ] && specLines="${specLines}\n$OPTARG" || specLines="$OPTARG" ;;
     G) guiOpt="gui" ;;
     b) backgroundMode=1 ;;
+    d) backgroundMode=0 ;;
     h) usage ;;
     v) version ;;
   esac
