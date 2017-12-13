@@ -30,9 +30,13 @@ RELEASE 2.0
    ... abandon getopts ?
 ... vmrun - make -b default behaviour
 
+RELEASE 1.9
+
+... templates - create VMs on host, no download (http://ask.xmodulo.com/mount-qcow2-disk-image-linux.html)
+
 RELEASE 1.8
 
-... refacto - vmsnap is no beautiful code, make it right
+vvv vmrun - make -b the default
 vvv insert and eject iso and floppy on a running VM
 
 WORK DONE UNTIL 1.8
