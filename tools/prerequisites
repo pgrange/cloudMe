@@ -73,6 +73,6 @@ if [ -f ${helper} ] ; then
   if [ ${setuidbit} -eq 0 ] ; then
     echo "fixing bridge helper permissions"
     helper_mod=$((helper_mod+4000))
-    chmod ${{helper_mod} ${helper}
+    chmod ${helper_mod} ${helper}
   fi
 fi
