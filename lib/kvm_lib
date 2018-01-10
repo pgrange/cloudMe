@@ -351,6 +351,7 @@ vmGui=${guiOpt}
 EOF
     vm_run ${vmName} ${vmGroup} ${vmSubGroup} none ${guiOpt}
     vmList="${vmList} ${vmName}"
+    vmIdx=$(echo ${vmIdx} | sed 's/^0*//')
     vmIdx=$((vmIdx+1))
   done
 
