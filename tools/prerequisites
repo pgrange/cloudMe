@@ -12,7 +12,7 @@ tst "which qemu-system-$(uname -m)" "qemu"
 tst "which dnsmasq" "dnsmasq"
 tst "which tree" "tree"
 tst "which curl" "curl"
-tst "which uuidgen" "uuidgen"
+tst "which uuidgen || which uuid" "uuidgen or uuid"
 
 for oldFile in bin/vmrunning bin/vmcreate bin/vminstantiate bin/vmstop bin/vmconsole bin/vm
 do
