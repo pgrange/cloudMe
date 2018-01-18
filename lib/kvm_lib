@@ -25,6 +25,10 @@ vmConfExt="conf"
 vmPidExt="pid"
 vmSystemType=$(uname -m)
 
+UUID=
+which uuid >/dev/null 2>&1 && UUID=uuid
+which uuidgen >/dev/null 2>&1 && UUID=uuidgen
+
 vmTemplates="archlinux debian7 debian8 debian9 centos7"
 vmTemplatesDetails="
 archlinux;http://n0vember.free.fr/nocloud/templates/archlinux;8dd086f32e7572184b1533bd3963842a;6
@@ -148,7 +152,7 @@ vm_run() {
 
   local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
 
-  local vmUuid=$(uuidgen)
+  local vmUuid=$(${UUID})
   local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmSubGroup})
   [ -f "${vmConf}" ] && . "${vmConf}"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
@@ -197,7 +201,7 @@ vm_run() {
 }
 
 vm_mac_gen() {
-  [ $# -gt 0 ] && uuid=$1 || uuid=$(uuidgen)
+  [ $# -gt 0 ] && uuid=$1 || uuid=$(${UUID})
   echo ${uuid} | sed -r 's/-//g;s/^(.{6}).*/005056\1/;s/(..)/\1:/g;s/:$//'
 }
 
@@ -216,7 +220,7 @@ vm_create() {
 
   local gui="gui"
 
-  local vmUuid=$(uuidgen)
+  local vmUuid=$(${UUID})
   local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmType})
   local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmType})
   [ -d ${vmDir} ] || mkdir -p ${vmDir}
@@ -323,7 +327,7 @@ vm_instantiate() {
   local vmIdx=0
   for vmNum in $(seq 1 ${vmCount})
   do
-    local vmUuid=$(uuidgen)
+    local vmUuid=$(${UUID})
     local vmName=${vmUuid}
     [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
     [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
