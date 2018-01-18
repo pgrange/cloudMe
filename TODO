@@ -26,6 +26,8 @@ RELEASE 2.1
 
 RELEASE 2.0
 
+... make uninstall
+... systemv services
 >>> core - use environment variable to restrict to a group
    vvv make group option available in vminventory
    ... rename the concept of group as context. All references across scripts must be uniform
