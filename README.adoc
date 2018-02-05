@@ -78,6 +78,8 @@ Only thing to do is :
 
 == Configuration
 
+=== Configuration files
+
 Nocloud comes with a default configuration. It is defined in /usr/local/lib/cm_lib. This configuration can be overriden using one of the following config file (searched for in this order) :
 
 * ~/.nocloud.conf
@@ -89,6 +91,10 @@ Those configuration files can override any parameter defined in cm_lib.
 If you want to resolve machine names, you will need to add 192.168.1.1 to your DNS servers. This will be automated as much as possible in the future releases, but it may be impossible to cover all cases so you may have to do some configuration by yourself.
 
 One of the simpliest case is systemd-resolved where you just have to add the IP to the DNS= line of /etc/systemd/resolved.conf, "nocloud" to the Domains= line and restart the service.
+
+=== Environment variables
+
+NOCLOUD_KVM, if set to 1 changes qemu behaviour not to use kvm extensions. It will then fully emulate the VM with loss of performance. This option however allows to launch VMs on a machine where you don't have VT-x extensions or in a VM where you don't have nested capabilities.
 
 == Cloud initialization and template managment
 
