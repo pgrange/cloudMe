@@ -181,8 +181,8 @@ vm_run() {
   local vmMac=$(vm_mac_gen ${vmUuid})
 
   local kvmOpt="-enable-kvm"
-  [ "${NOCLOUD_NOKVM}" -eq 1 ] && kvmOpt=""
-  [ "${NOCLOUD_NOKVM}" -eq 1 ] && cpuType="qemu64"
+  [ 0${NOCLOUD_NOKVM} -eq 1 ] && kvmOpt=""
+  [ 0${NOCLOUD_NOKVM} -eq 1 ] && cpuType="qemu64"
 
   qemu-system-${vmSystemType} \
     ${kvmOpt} \
