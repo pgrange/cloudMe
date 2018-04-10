@@ -19,18 +19,19 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) -m <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ] [ -i <ISO> ] [ -f <IMG> ]
-   or : $(basename $0) -c <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
+  echo "usage : $(basename $0) -m <VM_NAME> [ -c <CONTEXT> [ -t <TYPE> ] ] [ -i <ISO> ] [ -f <IMG> ]
+   or : $(basename $0) -C <VM_NAME> [ -c <CONTEXT> [ -t <TYPE> ] ]
    or : $(basename $0) -T <VM_NAME>
-   or : $(basename $0) -s -g <GROUP> [ -d ]
+   or : $(basename $0) -s -c <CONTEXT> [ -d ]
   Manages running VMs
   -m : connects to the qemu console of a vm
-  -c : connects to the vm console
-  -g : restrict selection to this group
+  -C : connects to the vm console
+  -c : restrict selection to this context. Alternative to NC_CONTEXT environment variable. Default = ${vmDefaultContext}.
+  -g : alternative to -c, kept for compatibility
   -t : restrict selection to this type
   -T : launch a template
-  -s : stop group
-  -d : when stopping group, destroy vms
+  -s : stop context
+  -d : when stopping context, destroy vms
   -f : mount specified floppy image ; if name is 'none', eject floopy
   -i : mount specified iso ; if name is 'none', eject iso
   -h : display this help
@@ -50,10 +51,11 @@ modeName=
 vmName=
 isoName=
 floppyName=
-groupName="*"
-subGroupName="*"
+contextName="${vmDefaultContext}"
+[ -n "${NC_CONTEXT}" ] && contextName=${NC_CONTEXT}
+typeName="*"
 stopDestroy=0
-while getopts m:c:sg:t:T:df:i:hv name
+while getopts m:C:sg:c:t:T:df:i:hv name
 do
   case $name in
     m)
@@ -61,7 +63,7 @@ do
       modeName="manage"
       mode=$((mode+1))
       ;;
-    c)
+    C)
       vmName="$OPTARG"
       modeName="console"
       mode=$((mode+1))
@@ -76,8 +78,8 @@ do
     f)
       floppyName="$OPTARG"
       ;;
-    g) groupName="$OPTARG" ;;
-    t) subGroupName="$OPTARG" ;;
+    g|c) contextName="$OPTARG" ;;
+    t) typeName="$OPTARG" ;;
     T) vmName="$OPTARG"
        modeName="template"
        mode=$((mode+1))
@@ -89,8 +91,8 @@ do
 done
 shift $(($OPTIND-1))
 
-[ ${mode} -eq 0 ] && usage "One mode must be specified between -m, -s, -c and -T"
-[ ${mode} -gt 1 ] && usage "Only one mode to specify between -m, -s, -c and -T"
+[ ${mode} -eq 0 ] && usage "One mode must be specified between -m, -s, -C and -T"
+[ ${mode} -gt 1 ] && usage "Only one mode to specify between -m, -s, -C and -T"
 
 if [ -n "${isoName}" ] ; then
   [ ${isoName} == "none" ] && vm_console_command ${vmName} eject ide1-cd0
@@ -107,32 +109,32 @@ fi
 case ${modeName} in
   "manage")
     [ -z ${vmName} ] && usage "VM name is mandatory"
-    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    vm_running "${contextName}" "${typeName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
     vm_console_command ${vmName}
     ;;
   "console")
     [ -z ${vmName} ] && usage "VM name is mandatory"
-    vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
+    vm_running "${contextName}" "${typeName}" | grep "^${vmName}" >/dev/null || usage "no VM runnning with that name"
     port=$(vm_spice_port "${vmName}")
     which spicy >/dev/null 2>&1 || usage "spicy is needed for this feature"
     spicy -h localhost -p $port -w ${vmSpicePassword} --class=qemu-system-${vmSystemType} >/dev/null 2>&1 &
     ;;
   "template")
     [ -z ${vmName} ] && usage "VM name is mandatory"
-    vmGroup=${vmCreateGroup}
-    chmod +w $(vm_dir ${vmName} ${vmGroup})/$(vm_disks ${vmName} ${vmGroup} | head -1)
-    is_vm_running ${vmName} ${vmGroup} > /dev/null && usage "Machine is already running" || vm_run ${vmName} ${vmGroup} ""
+    vmContext=${vmCreateContext}
+    chmod +w $(vm_dir ${vmName} ${vmContext})/$(vm_disks ${vmName} ${vmContext} | head -1)
+    is_vm_running ${vmName} ${vmContext} > /dev/null && usage "Machine is already running" || vm_run ${vmName} ${vmContext} ""
     ;;
   "stop")
-    [ "${groupName}" == "*" ] && usage "specifying a group name is mandatory to stop a group"
-    vm_running "${groupName}" "${subGroupName}" | while read vmName vmGroup vmIp
+    [ "${contextName}" == "*" ] && usage "specifying a context name is mandatory to stop a context"
+    vm_running "${contextName}" "${typeName}" | while read vmName vmContext vmIp
     do
-      vmSubGroup=$(echo ${vmGroup} | cut -d "/" -f 2)
-      vmGroup=$(echo ${vmGroup} | cut -d "/" -f 1)
-      [ "${vmGroup}" == "${vmCreateGroup}" ] && vmSubGroup=""
-      vm_stop ${vmName} ${vmGroup} ${vmSubGroup}
+      vmType=$(echo ${vmContext} | cut -d "/" -f 2)
+      vmContext=$(echo ${vmContext} | cut -d "/" -f 1)
+      [ "${vmContext}" == "${vmCreateContext}" ] && vmType=""
+      vm_stop ${vmName} ${vmContext} ${vmType}
     done
-    [ "${groupName}" == "${vmCreateGroup}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateGroup}"
-    [ $stopDestroy -eq 1 ] && vm_group_destroy ${groupName}
+    [ "${contextName}" == "${vmCreateContext}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateContext}"
+    [ $stopDestroy -eq 1 ] && vm_context_destroy ${contextName}
     ;;
 esac

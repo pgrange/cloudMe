@@ -39,8 +39,8 @@ vmName=$1
 
 # Template start
 log "starting ${vmName}"
-chmod +w ${vmBaseDir}/${vmCreateGroup}/${vmName}/*img
-vm_run ${vmName} ${vmCreateGroup} "" none
+chmod +w ${vmBaseDir}/${vmCreateContext}/${vmName}/*img
+vm_run ${vmName} ${vmCreateContext} "" none
 log "waiting for ${vmName} to get an IP"
 vmIp=$(vm_ip ${vmName})
 [ -z "${vmIp}" ] && log "${vmName} did not get an IP in time." && exit
@@ -71,5 +71,5 @@ fi
 
 # Template stop
 log "stoping ${vmName}"
-vm_stop ${vmName} ${vmCreateGroup}
-chmod -w ${vmBaseDir}/${vmCreateGroup}/${vmName}/*img
+vm_stop ${vmName} ${vmCreateContext}
+chmod -w ${vmBaseDir}/${vmCreateContext}/${vmName}/*img

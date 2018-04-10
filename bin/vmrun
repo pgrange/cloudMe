@@ -21,8 +21,9 @@ stopSignal=SIGUSR1
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) -g <GROUP> [ -f <FILE> | -m specline ] [ -G ]
-  -g : specify group to run VM in
+  echo "usage : $(basename $0) -c <CONTEXT> [ -f <FILE> | -m specline ] [ -G ]
+  -c : specify context to run VM in. Alternative to NC_CONTEXT environment variable. Default = ${vmDefaultContext}.
+  -g : alternative to -c. Kept for compatibility
   -f <FILE> : instanciate servers based on a configuration file. View documentation for file format.
   -m : give a vm specification (as provided to -f option)
   -G : when running VMs have a GUI for each one
@@ -35,14 +36,14 @@ usage() {
 }
 
 stop_all() {
-  vms=$(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1 | xargs)
+  vms=$(vm_running "${contextName}" "*" | cut -d ' ' -f 1 | xargs)
   log "My vms are currently : "
   for vm in ${vms} ; do
     log " - ${vm}"
   done
   for vm in ${vms} ; do
     log "shutting down ${vm}"
-    vm_stop ${vm} ${vmGroup} $(vm_type ${vm})
+    vm_stop ${vm} ${contextName} $(vm_type ${vm})
   done
 }
 
@@ -57,7 +58,7 @@ stop_and_destroy_all() {
   log "I am being told to shut down and destroy all running VMs."
   stop_all
   log "removing files"
-  vm_group_destroy ${vmGroup}
+  vm_context_destroy ${contextName}
   log "Good bye !"
   exit
 }
@@ -68,9 +69,9 @@ run_from_spec() {
   for confLine in $(sed '/^ *$/d;s/ *#.*$//' ${confFile}) ; do
     local vmName=$(echo "${confLine}" | cut -d : -f 1)
     local vmCount=$(echo "${confLine}" | cut -d : -f 2)
-    local vmSubGroup=$(echo "${confLine}" | cut -d : -f 3)
+    local vmType=$(echo "${confLine}" | cut -d : -f 3)
     local vmOpts=$(echo "${confLine}" | cut -d : -f 4 | tr ";" " ")
-    local vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${vmGroup} ${vmSubGroup} "${vmOpts} ${guiOpt}")
+    local vmSpawned=$(vm_instantiate ${vmName} ${vmCount} ${contextName} ${vmType} "${vmOpts} ${guiOpt}")
     local vm
     local vms
     for vm in $(echo "${vmSpawned}" | tr -s '\n ' '  ') ; do
@@ -88,14 +89,16 @@ libName=cm_lib
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
 vmName=
+contextName="${vmDefaultContext}"
+[ -n "${NC_CONTEXT}" ] && contextName=${NC_CONTEXT}
 guiOpt=
 specLines=
 backgroundMode=1
-while getopts f:g:m:Gbdhv name
+while getopts f:g:c:m:Gbdhv name
 do
   case $name in
-    f) groupConfFile="$OPTARG" ;;
-    g) vmGroup="$OPTARG" ;;
+    f) contextConfFile="$OPTARG" ;;
+    g|c) contextName="$OPTARG" ;;
     m) [ -n "${specLines}" ] && specLines="${specLines}\n$OPTARG" || specLines="$OPTARG" ;;
     G) guiOpt="gui" ;;
     b) backgroundMode=1 ;;
@@ -106,31 +109,29 @@ do
 done
 shift $(($OPTIND-1))
 
-[ -z "${vmGroup}" ] && usage "-g is mandatory"
-
-if [ -n "${specLines}" -a -n "${groupConfFile}" ] ; then
-  usage "you must choose between specifying a specification file (-f) and inline specifications (-m)"
+if [ -n "${specLines}" -a -n "${contextConfFile}" ] ; then
+  usage "you must choose between a specification file (-f) and inline specifications (-m)"
 fi
 
-log "I will be managing the ${vmGroup} group"
+log "I will be managing the ${contextName} context"
 [ ${backgroundMode} -eq 1 ] && log "Background mode activated : I will quit when my VMs are up."
 
 trap 'stop_and_destroy_all' SIGINT SIGTERM
 trap 'stop_and_keep_all' ${stopSignal}
 
-vms=$(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1 | xargs)
+vms=$(vm_running "${contextName}" "*" | cut -d ' ' -f 1 | xargs)
 if [ -n "${vms}" ] ; then
-  log "${vmGroup} is not empty !"
+  log "${contextName} is not empty !"
   for vm in ${vms} ; do
-    log "${vm} is of $(vm_type ${vm}) type in $(vm_group ${vm}) group"
+    log "${vm} is of $(vm_type ${vm}) type in $(vm_context ${vm}) context"
   done
 fi
 
-if [ -n "${groupConfFile}" ] ; then
-  vms=$(run_from_spec ${groupConfFile})
+if [ -n "${contextConfFile}" ] ; then
+  vms=$(run_from_spec ${contextConfFile})
   for vm in ${vms}
   do
-    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
+    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_context ${vm}) context"
   done
 fi
 
@@ -141,19 +142,19 @@ if [ -n "${specLines}" ] ; then
   rm ${specFile}
   for vm in ${vms}
   do
-    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) group"
+    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_context ${vm}) context"
   done
 else
-  groups=$(ls ${vmBaseDir} | grep -v "${vmCreateGroup}")
-  echo ${groups} | tr ' ' '\n' | grep "^${vmGroup}$" >/dev/null || usage "${vmGroup} is no known group"
-  subGroups=$(ls ${vmBaseDir}/${vmGroup})
-  [ -z "${subGroups}" ] && usage "no subGroup for group ${vmGroup}"
-  for subGroup in ${subGroups}
+  contexts=$(ls ${vmBaseDir} | grep -v "${vmCreateContext}")
+  echo ${contexts} | tr ' ' '\n' | grep "^${contextName}$" >/dev/null || usage "${contextName} is no known context"
+  types=$(ls ${vmBaseDir}/${contextName})
+  [ -z "${types}" ] && usage "no type for context ${contextName}"
+  for type in ${types}
   do
-    for vmName in $(ls ${vmBaseDir}/${vmGroup}/${subGroup})
+    for vmName in $(ls ${vmBaseDir}/${contextName}/${type})
     do
-      vm_run ${vmName} ${vmGroup} ${subGroup} none ${guiOpt}
-      log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_group ${vmName}) group"
+      vm_run ${vmName} ${contextName} ${type} none ${guiOpt}
+      log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_context ${vmName}) context"
       vms="${vms} ${vmName}"
     done
   done
@@ -164,7 +165,7 @@ while [ -n "${vms}" ] ; do
   loopOperations=0
   if [ -n "${vmsWithoutIp}" ] ; then
     for vmWithoutIp in ${vmsWithoutIp} ; do
-      ip=$(vm_running "${vmGroup}" "*" | grep ${vmWithoutIp} | cut -d ' ' -f 3 )
+      ip=$(vm_running "${contextName}" "*" | grep ${vmWithoutIp} | cut -d ' ' -f 3 )
       if [ -n "${ip}" ] ; then
         log "${vmWithoutIp} has IP ${ip}"
         vmsWithoutIp=$(echo "${vmsWithoutIp}" | sed "s/ *${vmWithoutIp} */ /" | sed -r 's/^ *(.*) *$/\1/')
@@ -181,15 +182,15 @@ while [ -n "${vms}" ] ; do
     fi
   fi
   for vm in ${vms} ; do
-    if [ -z "$(vm_running "${vmGroup}" "*" | grep ${vm})" ] ; then
+    if [ -z "$(vm_running "${contextName}" "*" | grep ${vm})" ] ; then
       log "${vm} has vanished..."
       vms=$(echo "${vms}" | sed "s/ *${vm} */ /;s/^ *//;s/ *$//")
       loopOperations=$((loopOperations+1))
     fi
   done
-  for vm in $(vm_running "${vmGroup}" "*" | cut -d ' ' -f 1) ; do
+  for vm in $(vm_running "${contextName}" "*" | cut -d ' ' -f 1) ; do
     if [ $(echo "${vms}" | tr -s ' ' '\n' | grep ${vm} | wc -l) -eq 0 ] ; then
-      log "${vm} has joined the group from outer space."
+      log "${vm} has joined the context from outer space."
       vms="${vms} ${vm}"
       vmsWithoutIp="${vmsWithoutIp} ${vm}"
       loopOperations=$((loopOperations+1))

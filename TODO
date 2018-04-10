@@ -32,9 +32,9 @@ RELEASE 2.0
 ... systemv services
 >>> core - use environment variable to restrict to a group
    vvv make group option available in vminventory
-   ... rename the concept of group as context. All references across scripts must be uniform
-   ... make type the only name across scripts for type and subgroup
-   ... adapt scripts to take NOCLOUD_CONTEXT variable as context if none specified, default context is then named default
+   vvv rename the concept of group as context. All references across scripts must be uniform
+   vvv make type the only name across scripts for type and subgroup
+   vvv adapt scripts to take NC_CONTEXT variable as context if none specified, default context is then named default
    ... make scripts options as uniform as possible
    ... abandon getopts ? find a way to have long options
 vvv vmrun - make -b default behaviour

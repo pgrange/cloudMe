@@ -25,15 +25,15 @@ vmMem=512
 vmMemVid=12
 vmCpu=2
 vmCpuCap=50
-vmCreateGroup="templates"
+vmCreateContext="templates"
 vmCreateDiskSize=10
 vmSpicePassword="nocloud"
 
 vmCount=1
-vmDefaultGroup="group"
-vmDefaultSubGroup="default"
-vmGroup=${vmDefaultGroup}
-vmSubGroup=${vmDefaultSubGroup}
+vmDefaultContext="context"
+vmDefaultType="default"
+vmContext=${vmDefaultContext}
+vmType=${vmDefaultType}
 
 isoDir="$HOME/Documents/distribs/linux"
 

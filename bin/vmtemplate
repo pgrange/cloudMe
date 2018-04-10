@@ -23,7 +23,7 @@ usage() {
    or : $(basename $0) -c TEMPLATE_NAME -i ISO_NAME
    or : $(basename $0) -L
   -d : download a template. TEMPLATE_NAME is one of ${vmTemplates}
-  -c : create a template ou t of iso
+  -C : create a template ou t of iso
   -i : specify isoName
   -L : list existing templates
   -h : display this help
@@ -42,19 +42,19 @@ vmTemplate=
 downloadMode=0
 createMode=0
 isoName=
-while getopts d:c:i:Lhv name
+while getopts d:C:i:Lhv name
 do
   case $name in
     d)
       downloadMode=1
       vmTemplate=$OPTARG
       ;;
-    c)
+    C)
       createMode=1
       vmTemplate=$OPTARG
       ;;
     L)
-      cd ${vmBaseDir}/${vmCreateGroup}
+      cd ${vmBaseDir}/${vmCreateContext}
       ls -1
       cd - >/dev/null 2>&1
       exit
@@ -77,14 +77,14 @@ shift $(($OPTIND-1))
 [ ${createMode} -eq 0 -a ${downloadMode} -eq 0 ] && usage "What do you want ? Create or download ?"
 [ ${createMode} -eq 1 -a -z "${isoName}" ] && usage "You must specify an iso to create a template."
 
-vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateGroup})
+vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateContext})
 if [ -d "${vmTemplateDir}" ] ; then
   echo "you already have a template called ${vmTemplate}"
   exit
 fi
 
 if [ ${createMode} -eq 1 ] ; then
-  vm_create ${vmTemplate} ${vmCreateGroup} "" ${isoName}
+  vm_create ${vmTemplate} ${vmCreateContext} "" ${isoName}
 fi
 
 if [ ${downloadMode} -eq 1 ] ; then
@@ -131,7 +131,7 @@ if [ ${downloadMode} -eq 1 ] ; then
   [ "${md5}" == "${vmTemplateBaseMd5}" ] || usage "checkum does not match (got ${md5})"
 
   log "starting template"
-  vm_run ${vmTemplate} ${vmCreateGroup} "" "none"
+  vm_run ${vmTemplate} ${vmCreateContext} "" "none"
   vmIp=$(vm_ip ${vmTemplate} | tr ' ' '\n' | sort -u | tail -1)
   vmSshOpen=$(LANG= echo 2>&1 >/dev/tcp/${vmIp}/22 | grep "Connection refused" | wc -l)
   while [ ${vmSshOpen} -ne 0 ]

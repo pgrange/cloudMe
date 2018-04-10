@@ -20,8 +20,8 @@ nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qem
 To install, get a template and instanciate 5 times this template :
 
  sudo make
- vmtemplate -d debian8
- vmrun -g test -m debian8:5:deb
+ vmtemplate -d debian9
+ vmrun -c test -m debian9:5:deb
 
 == Presentation
 
@@ -38,7 +38,7 @@ it is not :
 - ment to be a production cloud platform
 - bug free
 
-I therefore only have tested with Archlinux hosts and it has been reported to me to run on ubuntu. Debian, Centos and Archlinux guests were tested. And this is what will be use next as examples. Examples will be simple. Multiple options are available and are documented through the -h option of each script.
+I therefore only have tested with Archlinux hosts and it has been reported to me to run on ubuntu. Debian, Centos and Archlinux guests were tested. And this is what will be used next as examples. Examples will be simple. Multiple options are available and are documented through the -h option of each script.
 
 == System pre-requisites
 
@@ -94,7 +94,9 @@ One of the simpliest case is systemd-resolved where you just have to add the IP 
 
 === Environment variables
 
-NOCLOUD_KVM, if set to 1 changes qemu behaviour not to use kvm extensions. It will then fully emulate the VM with loss of performance. This option however allows to launch VMs on a machine where you don't have VT-x extensions or in a VM where you don't have nested capabilities.
+- NOCLOUD_KVM, if set to 1 changes qemu behaviour not to use kvm extensions. It will then fully emulate the VM with loss of performance. This option however allows to launch VMs on a machine where you don't have VT-x extensions or in a VM where you don't have nested capabilities.
+
+- NC_CONTEXT sets context for all programs. Setting this variable will limit commands to this context. The goal is to ease the use of multiple contexts on the same host with no interference.
 
 == Cloud initialization and template managment
 
@@ -133,7 +135,7 @@ will create two new machines, fresh copies from of the template. Those machines 
 
 In order to organize your VMs they are grouped. This is done using a two level hierarchy :
 
-- groups will represent a kind of platform, a set of machines you use for a service.
+- context will represent a kind of platform, a set of machines you use for a service.
 - types will be subgroups of servers that will group VMs by function.
 
 For instance, you run your application named ''awesome'' constituted of a database serveur and two web servers. You would create the set with this line :
@@ -178,7 +180,7 @@ The file (named pftest) is called with the following command :
 
  vmrun -g tst -f pftest -b
 
-And so the machines will be in the tst group.
+And so the machines will be in the tst context.
 
 Groups and types, besides being structural in the VM directory structure, and for naming purpose, will be used for instance if you configure those machines with ansible. Once the previous instanciation has been done, you can use dynamic inventory :
 
@@ -283,20 +285,20 @@ You can get the templates list with :
 vmtemplate -L
 ----
 
-=== vmrun - run all the VMs of a group
+=== vmrun - run all the VMs of a context
 
-vmrun launches VMs from templates, using spec files or inline specifications. It can also rerun an existing group.
+vmrun launches VMs from templates, using spec files or inline specifications. It can also rerun an existing context.
 
 To run from a spec file :
 
 ----
-vmrun -g my_group -f conffile
+vmrun -g my_context -f conffile
 ----
 
 to run directly from the command line :
 
 ----
-vmrun -g my_group -m debian8:2:web -m debian8:1:sql
+vmrun -g my_context -m debian8:2:web -m debian8:1:sql
 ----
 
 More complete description of VM specifications can be found above in this documentation.
@@ -311,7 +313,7 @@ To get running VMs :
 vminventory
 ----
 
-To get existing (but not only running) groups and types :
+To get existing (but not only running) contexts and types :
 
 ----
 vminventory -L
@@ -324,16 +326,16 @@ ln -s /usr/local/bin/vminventory inventory
 ansible-playbook -i inventory playbook.yml
 ----
 
-the scope of vminventory can be limited to a single group, using -g option. This affects standard behaviour and --list option, but has no effect on -L which will list everything.
+the scope of vminventory can be limited to a single context, using -c option. This affects standard behaviour and --list option, but has no effect on -L which will list everything.
 
 === vmmanage - managing running VMs
 
-vmmanage deals with running VMs and groups maintainance. It can:
+vmmanage deals with running VMs and contexts maintainance. It can:
 
 * connect to qemu console (vmmanage -m tst00)
 * connect to the VM console (vmmanage -c tst00)
 * launch a template (vmmanage -T archlinux)
-* stop a running group, and optionnaly destroy all of its VMs (vmmanage -s -g my_group)
+* stop a running context, and optionnaly destroy all of its VMs (vmmanage -s -g my_context)
 * insert an iso (vmmanage -m tst00 -i file.iso) that you'll have to mount in the VM
 * insert a floppy disk (vmmanage -m tst00 -f file.img) that you'll have to mount in the VM
 * eject an iso or a floppy by using "none" as the file name for iso of floppy)
