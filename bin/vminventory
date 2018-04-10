@@ -19,12 +19,14 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) [ --list | -h | -L ] [ -g <GROUP_NAME> ] | -v
+  echo "usage : $(basename $0) [ --list | -h | -L ] [ -c <CONTEXT> ] | -v
   this tool is intended to be used as inventory by ansible, ansible-playbook...
   but if you don't pass any option, you will have a list of running VMs
   --list : outputs json inventory, suitable for ansible dynamic inventory
-  -g : limit output to specified group
-  -L : list existing groups
+  -L : list existing VMs in context (or all contexts if set to all)
+  -c : limit output to specified context. Alternative to NC_CONTEXT environment variable. Default = context.
+       if set to all, displays all VM of all contexts.
+  -g : equivalent to -c (kept for compatibility)
   -h : display this help
   -v : display version and exit
   ">&2
@@ -38,23 +40,23 @@ libName=cm_lib
 [ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
-groupName="*"
-subGroupName="*"
+context="context"
+typeName="*"
 
 inventory() {
-  echo "{"
-  previous_group=
-  previous_type=
-  children=
-  hosts=
+  local contextName="$1"
+  local typeName="$1"
+  local line host context type ip previous_context previous_type children hosts
 
-  for line in $(vm_running "${groupName}" "${subGroupName}" | sort -k 2 | tr " " "/")
+  echo "{"
+
+  for line in $(vm_running "${contextName}" "${typeName}" | sort -k 2 | tr " " "/")
   do
 
     host=$(echo "$line" | cut -d "/" -f 1)
-    group=$(echo "$line" | cut -d "/" -f 2)
-    if [ "${group}" == "${vmCreateGroup}" ] ; then
-      type=${group}
+    context=$(echo "$line" | cut -d "/" -f 2)
+    if [ "${context}" == "${vmCreateGroup}" ] ; then
+      type=${context}
       ip=$(echo "$line" | cut -d "/" -f 3)
     else
       type=$(echo "$line" | cut -d "/" -f 3)
@@ -63,7 +65,7 @@ inventory() {
 
     if [ "${previous_type}" != "${type}" ] ; then
       if [ -n "${previous_type}" ] ; then
-        echo "  \"${previous_group}_${previous_type}\" : {"
+        echo "  \"${previous_context}_${previous_type}\" : {"
         echo "    \"hosts\" : [ ${hosts} ],"
         echo "  },"
         hosts=""
@@ -71,9 +73,9 @@ inventory() {
       previous_type=${type}
     fi
 
-    if [ "${previous_group}" != "${group}" ] ; then
-      if [ -n "${previous_group}" ] ; then
-        echo "  \"${previous_group}\" : {"
+    if [ "${previous_context}" != "${context}" ] ; then
+      if [ -n "${previous_context}" ] ; then
+        echo "  \"${previous_context}\" : {"
         children=$(echo ${children} | tr ' ' '\n' | sort | uniq | xargs echo)
         echo "    \"children\" : [ ${children} ],"
         echo "    \"vars\": {"
@@ -83,22 +85,22 @@ inventory() {
         echo "  },"
         children=""
       fi
-      previous_group=${group}
+      previous_context=${context}
     fi
 
     hosts="${hosts} \"${ip}\","
-    children="${children} \\\"${group}_${type}\\\","
+    children="${children} \\\"${context}_${type}\\\","
 
   done
 
   if [ -n "${type}" ] ; then
-    echo "  \"${group}_${type}\" : {"
+    echo "  \"${context}_${type}\" : {"
     echo "    \"hosts\" : [ ${hosts} ],"
     echo "  },"
   fi
 
-  if [ -n "${group}" ] ; then
-    echo "  \"${group}\" : {"
+  if [ -n "${context}" ] ; then
+    echo "  \"${context}\" : {"
     children=$(echo ${children} | tr ' ' '\n' | sort | uniq | xargs echo)
     echo "    \"children\" : [ ${children} ],"
     echo "    \"vars\": {"
@@ -121,15 +123,19 @@ if [ "$1" == "--list" ] ; then
   shift
 fi
 
-while getopts Lhvg: name
+[ -n "${NC_CONTEXT}" ] && context=${NC_CONTEXT}
+while getopts Lhvg:c: name
 do
   case $name in
     L)
       listMode=1
       mode=$((mode+1))
       ;;
+    c)
+      context="$OPTARG"
+      ;;
     g)
-      groupName="$OPTARG"
+      context="$OPTARG"
       ;;
     h) usage ;;
     v) version ;;
@@ -139,15 +145,15 @@ shift $(($OPTIND-1))
 
 [ $# -gt 0 ] && usage "unknown option $1"
 [ ${mode} -gt 1 ] && usage "you can only specify one mode at a time (-L | --list)"
+[ ${context} == "all" ] && context="*"
 
 if [ ${inventoryMode} -eq 1 ] ; then
-  inventory
+  inventory "${context}" "${typeName}"
 elif [ ${listMode} -eq 1 ] ; then
-  vmPath=$(dirname ${vmBaseDir})
-  vmDir=$(basename ${vmBaseDir})
-  cd ${vmPath}
-  tree --noreport -d ${vmDir} -I ${vmCreateGroup}
+  cd ${vmBaseDir}
+  [ "${context}" == "*" ] || treeOpt="-I ${vmCreateGroup}"
+  [ "${context}" == "*" -o -d "${context}" ] && tree --noreport -d ${context} ${treeOpt}
   cd - >/dev/null 2>&1
 else
-  vm_running "${groupName}" "${subGroupName}"
+  vm_running "${context}" "${typeName}"
 fi
