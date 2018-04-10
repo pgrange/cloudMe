@@ -19,17 +19,19 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) -s <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
-   or : $(basename $0) -r <VM_NAME> -i <SNAPTAG> [ -g <GROUP> [ -t <TYPE> ] ]
-   or : $(basename $0) -d <VM_NAME> -i <SNAPTAG> [ -g <GROUP> [ -t <TYPE> ] ]
-   or : $(basename $0) -l <VM_NAME> [ -g <GROUP> [ -t <TYPE> ] ]
+  echo "usage : $(basename $0) -s <VM_NAME> [ -c <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -r <VM_NAME> -i <SNAPTAG> [ -c <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -d <VM_NAME> -i <SNAPTAG> [ -c <GROUP> [ -t <TYPE> ] ]
+   or : $(basename $0) -l <VM_NAME> [ -c <GROUP> [ -t <TYPE> ] ]
   Manages VMs snapshots.
   -s : creates a snapshot of VM_NAME
   -r : restores VM_NAME in the state of the snapshot with tag SNAPTAG
   -d : deletes VM_NAME snapshot with tag SNAPTAG
   -l : list snapshots for VM_NAME
   -i : specify snapshot TAG
-  -g and -t : optionnaly specify group and type
+  -c and -t : optionnaly specify context and type. NC_CONTEXT environment variable is available to set context
+              default context name is 'context'
+  -g : alternative to -c. Kept for compatibility
   -h : display this help
   -v : display version and exit" >&2
   exit 1
@@ -45,9 +47,10 @@ libName=cm_lib
 mode=0
 modeName=
 vmName=
-groupName="*"
-subGroupName="*"
-while getopts s:r:d:l:i:g:t:hv name
+contextName="context"
+[ -n "${NC_CONTEXT}" ] && contextName=${NC_CONTEXT}
+typeName="*"
+while getopts s:r:d:l:i:g:c:t:hv name
 do
   case $name in
     s)
@@ -71,8 +74,8 @@ do
       mode=$((mode+1))
       ;;
     i) snapTag="$OPTARG" ;;
-    g) groupName="$OPTARG" ;;
-    t) subGroupName="$OPTARG" ;;
+    g|c) contextName="$OPTARG" ;;
+    t) typeName="$OPTARG" ;;
     h) usage ;;
     v) version ;;
   esac
@@ -84,14 +87,14 @@ shift $(($OPTIND-1))
 
 [ -z ${vmName} ] && usage "VM name is mandatory"
 
-[ "${groupName}" == "*" ] && groupName=$(vm_group ${vmName})
-[ "${subGroupName}" == "*" ] && subGroupName=$(vm_type ${vmName})
+[ "${contextName}" == "*" ] && contextName=$(vm_group ${vmName})
+[ "${typeName}" == "*" ] && typeName=$(vm_type ${vmName})
 
-vmRunning=$(vm_running "${groupName}" "${subGroupName}" | grep "^${vmName}" | wc -l)
+vmRunning=$(vm_running "${contextName}" "${typeName}" | grep "^${vmName}" | wc -l)
 
 vm_take_snapshot_when_stopped() {
-  local vmDisks=$(vm_disks ${vmName} ${groupName} ${subGroupName} | cut -d ' ' -f 1)
-  local vmDir=$(vm_dir ${vmName} ${groupName} ${subGroupName})
+  local vmDisks=$(vm_disks ${vmName} ${contextName} ${typeName} | cut -d ' ' -f 1)
+  local vmDir=$(vm_dir ${vmName} ${contextName} ${typeName})
   local snapTag="vd-$(date +%Y%m%d%H%M%S)"
   local vmDisk
   for vmDisk in ${vmDisks}
@@ -105,8 +108,8 @@ vm_take_snapshot_when_started() {
 }
 
 vm_list_snapshots_when_stopped() {
-  local vmMainDisk=$(vm_disks ${vmName} ${groupName} ${subGroupName} | cut -d ' ' -f 1)
-  local vmDir=$(vm_dir ${vmName} ${groupName} ${subGroupName})
+  local vmMainDisk=$(vm_disks ${vmName} ${contextName} ${typeName} | cut -d ' ' -f 1)
+  local vmDir=$(vm_dir ${vmName} ${contextName} ${typeName})
   qemu-img snapshot -l ${vmDir}/${vmMainDisk}
 }
 
@@ -115,13 +118,13 @@ vm_list_snapshots_when_started() {
 }
 
 vm_restore_started_snapshot() {
-  vm_run ${vmName} ${groupName} ${subGroupName}
+  vm_run ${vmName} ${contextName} ${typeName}
   vm_console_command ${vmName} loadvm ${snapTag} >/dev/null 2>&1
 }
 
 vm_restore_stopped_snapshot() {
-  local vmDisks=$(vm_disks ${vmName} ${groupName} ${subGroupName} | cut -d ' ' -f 1)
-  local vmDir=$(vm_dir ${vmName} ${groupName} ${subGroupName})
+  local vmDisks=$(vm_disks ${vmName} ${contextName} ${typeName} | cut -d ' ' -f 1)
+  local vmDir=$(vm_dir ${vmName} ${contextName} ${typeName})
   local vmDisk
   for vmDisk in ${vmDisks}
   do
@@ -134,8 +137,8 @@ vm_delete_snapshot_when_started() {
 }
 
 vm_delete_snapshot_when_stopped() {
-  local vmDisks=$(vm_disks ${vmName} ${groupName} ${subGroupName} | cut -d ' ' -f 1)
-  local vmDir=$(vm_dir ${vmName} ${groupName} ${subGroupName})
+  local vmDisks=$(vm_disks ${vmName} ${contextName} ${typeName} | cut -d ' ' -f 1)
+  local vmDir=$(vm_dir ${vmName} ${contextName} ${typeName})
   local vmDisk
   for vmDisk in ${vmDisks}
   do
@@ -163,7 +166,7 @@ case ${modeName} in
     snapType=unknown
     echo ${snapTag} | grep "^vm-" >/dev/null && snapType=started
     echo ${snapTag} | grep "^vd-" >/dev/null && snapType=stopped
-    [ ${vmRunning} -gt 0 ] && vm_stop ${vmName} ${groupName} ${subGroupName}
+    [ ${vmRunning} -gt 0 ] && vm_stop ${vmName} ${contextName} ${typeName}
     [ ${snapType} == "started" ] && vm_restore_started_snapshot
     [ ${snapType} == "stopped" ] && vm_restore_stopped_snapshot
     [ ${snapType} == "unknown" ] && error "I don't know how to handle this snapshot"
