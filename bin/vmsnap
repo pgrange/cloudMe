@@ -87,7 +87,7 @@ shift $(($OPTIND-1))
 
 [ -z ${vmName} ] && usage "VM name is mandatory"
 
-[ "${contextName}" == "*" ] && contextName=$(vm_group ${vmName})
+[ "${contextName}" == "*" ] && contextName=$(vm_context ${vmName})
 [ "${typeName}" == "*" ] && typeName=$(vm_type ${vmName})
 
 vmRunning=$(vm_running "${contextName}" "${typeName}" | grep "^${vmName}" | wc -l)

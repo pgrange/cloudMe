@@ -135,6 +135,6 @@ case ${modeName} in
       vm_stop ${vmName} ${vmContext} ${vmType}
     done
     [ "${contextName}" == "${vmCreateContext}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateContext}"
-    [ $stopDestroy -eq 1 ] && vm_group_destroy ${contextName}
+    [ $stopDestroy -eq 1 ] && vm_context_destroy ${contextName}
     ;;
 esac

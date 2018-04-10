@@ -40,47 +40,47 @@ centos7;http://n0vember.free.fr/nocloud/templates/centos7;6d706ad889d59a755d68d6
 
 vm_pid_file() {
   local vmName=$1
-  local vmGroup=$2
+  local vmContext=$2
   local vmType=$3
 
-  local vmPid="$(vm_dir ${vmName} ${vmGroup} ${vmType})/${vmName}.${vmPidExt}"
+  local vmPid="$(vm_dir ${vmName} ${vmContext} ${vmType})/${vmName}.${vmPidExt}"
   echo ${vmPid}
 }
 
 vm_conf_file() {
   local vmName=$1
-  local vmGroup=$2
+  local vmContext=$2
   local vmType=$3
 
-  local vmConf="$(vm_dir ${vmName} ${vmGroup} ${vmType})/${vmName}.${vmConfExt}"
+  local vmConf="$(vm_dir ${vmName} ${vmContext} ${vmType})/${vmName}.${vmConfExt}"
   echo ${vmConf}
 }
 
-vm_group_dir() {
-  local vmGroup=$1
+vm_context_dir() {
+  local vmContext=$1
   local vmType=$2
 
-  local vmGroupDir="${vmBaseDir}/${vmGroup}/${vmType}"
-  [ -z "${vmType}" ] && vmGroupDir="${vmBaseDir}/${vmGroup}"
-  echo "${vmGroupDir}"
+  local vmContextDir="${vmBaseDir}/${vmContext}/${vmType}"
+  [ -z "${vmType}" ] && vmContextDir="${vmBaseDir}/${vmContext}"
+  echo "${vmContextDir}"
 }
 
 vm_dir() {
   local vmName=$1
-  local vmGroup=$2
+  local vmContext=$2
   local vmType=$3
 
-  local vmGroupDir=$(vm_group_dir ${vmGroup} ${vmType})
-  local vmDir="${vmGroupDir}/${vmName}"
+  local vmContextDir=$(vm_context_dir ${vmContext} ${vmType})
+  local vmDir="${vmContextDir}/${vmName}"
   echo "${vmDir}"
 }
 
 vm_disks() {
   local vmName=$1
-  local vmGroup=$2
+  local vmContext=$2
   local vmType=$3
 
-  local vmConfFile=$(vm_conf_file ${vmName} ${vmGroup} ${vmType})
+  local vmConfFile=$(vm_conf_file ${vmName} ${vmContext} ${vmType})
   local vmDisk
   local vmExtraDisk
   eval $(grep ^vmDisk= ${vmConfFile})
@@ -114,18 +114,18 @@ vm_disk_create() {
 
 vm_stop() {
   local vmName=$1
-  local vmGroup=$2
-  local vmSubGroup=$3
+  local vmContext=$2
+  local vmType=$3
 
-  local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
+  local vmDir=$(vm_dir ${vmName} ${vmContext} ${vmType})
   vm_console_command ${vmName} quit
-  rm $(vm_pid_file ${vmName} ${vmGroup} ${vmSubGroup})
+  rm $(vm_pid_file ${vmName} ${vmContext} ${vmType})
 }
 
 vm_run() {
   local vmName=$1
-  local vmGroup=$2
-  local vmSubGroup=$3
+  local vmContext=$2
+  local vmType=$3
   local isoName=$4
   local vmGui=$5
 
@@ -137,8 +137,8 @@ vm_run() {
   local vmNoGui="-display sdl -vga virtio -no-quit"
 
   local spicePort=$(free_port 1)
-  mkdir -p /tmp/nocloud.${USER}/${vmGroup}/${vmSubGroup}/
-  local vmMonitor="-monitor unix:/tmp/nocloud.${USER}/${vmGroup}/${vmSubGroup}/${vmName},server,nowait"
+  mkdir -p /tmp/nocloud.${USER}/${vmContext}/${vmType}/
+  local vmMonitor="-monitor unix:/tmp/nocloud.${USER}/${vmContext}/${vmType}/${vmName},server,nowait"
   local vmSpice="-spice port=${spicePort},addr=localhost,password=${vmSpicePassword}"
 
   local memOpt=""
@@ -150,10 +150,10 @@ vm_run() {
   local cpuType="host"
   #local cpuType="qemu64,+vmx"
 
-  local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmSubGroup})
+  local vmDir=$(vm_dir ${vmName} ${vmContext} ${vmType})
 
   local vmUuid=$(${UUID})
-  local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmSubGroup})
+  local vmConf=$(vm_conf_file ${vmName} ${vmContext} ${vmType})
   [ -f "${vmConf}" ] && . "${vmConf}"
   [ ${vmMem} -le ${hugePageFree} ] && memOpt="-mem-path /dev/hugepages"
 
@@ -166,7 +166,7 @@ vm_run() {
     sed 's/>/,format=qcow2,if=virtio/g' \
   )
 
-  local pidFile=$(vm_pid_file ${vmName} ${vmGroup} ${vmSubGroup})
+  local pidFile=$(vm_pid_file ${vmName} ${vmContext} ${vmType})
   if [ -f ${pidFile} ] ; then
     local pid=$(cat ${pidFile})
     ps ${pid} >/dev/null 2>&1
@@ -217,7 +217,7 @@ vm_get_mac() {
 
 vm_create() {
   local vmName=$1
-  local vmGroup=$2
+  local vmContext=$2
   local vmType=$3
   local isoName=$4
   local guiNoGui=$5
@@ -225,10 +225,10 @@ vm_create() {
   local gui="gui"
 
   local vmUuid=$(${UUID})
-  local vmDir=$(vm_dir ${vmName} ${vmGroup} ${vmType})
-  local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmType})
+  local vmDir=$(vm_dir ${vmName} ${vmContext} ${vmType})
+  local vmConf=$(vm_conf_file ${vmName} ${vmContext} ${vmType})
   [ -d ${vmDir} ] || mkdir -p ${vmDir}
-  vmDisk="$(vm_disk_create ${vmName} ${vmGroup} "${vmType}" ${vmCreateDiskSize})"
+  vmDisk="$(vm_disk_create ${vmName} ${vmContext} "${vmType}" ${vmCreateDiskSize})"
 
   cat > ${vmConf} <<EOF
 vmName=${vmName}
@@ -238,26 +238,26 @@ vmDisk=${vmDisk}
 vmUuid=${vmUuid}
 EOF
   [ "${guiNoGui}" == "no" ] && gui=""
-  vm_run ${vmName} ${vmGroup} "${vmType}" "${isoName}" ${gui}
+  vm_run ${vmName} ${vmContext} "${vmType}" "${isoName}" ${gui}
 }
 
 vm_clone_disk() {
-  local vmSrcGroup=$1
+  local vmSrcContext=$1
   local vmSrcType=$2
   local vmSrc=$3
-  local vmDestGroup=$4
+  local vmDestContext=$4
   local vmDestType=$5
   local vmDest=$6
 
-  local vmSrcDir=$(vm_dir ${vmSrc} ${vmSrcGroup} ${vmSrcType})
-  local vmSrcConf=$(vm_conf_file ${vmSrc} ${vmSrcGroup} ${vmSrcType})
+  local vmSrcDir=$(vm_dir ${vmSrc} ${vmSrcContext} ${vmSrcType})
+  local vmSrcConf=$(vm_conf_file ${vmSrc} ${vmSrcContext} ${vmSrcType})
   local vmSrcCount=$(ps -A -o args | grep qemu-system-${vmSystemType} | grep -v grep | grep "${vmSrcDir}/" | wc -l)
   [ ${vmSrcCount} -ne 0 ] && usage "can't clone a running vm"
   . ${vmSrcConf}
   [ -f "${vmSrcDir}/${vmDisk}" ] || usage "can't clone non-existing disk ${vmSrcDir}/${vmDisk}"
   chmod a-w "${vmSrcDir}/${vmDisk}"
 
-  local vmDestDir=$(vm_dir ${vmDest} ${vmDestGroup} ${vmDestType})
+  local vmDestDir=$(vm_dir ${vmDest} ${vmDestContext} ${vmDestType})
   local vmDestDiskCount=0
   while [ -f "${vmDestDir}/${vmDest}_${vmDestDiskCount}.${vmDiskExt}" ] ; do vmDestDiskCount=$((vmDestDiskCount+1)) ; done
   local vmDestDisk="${vmDest}_${vmDestDiskCount}.${vmDiskExt}"
@@ -268,21 +268,21 @@ vm_clone_disk() {
 }
 
 vm_running() {
-  local groupName="$1"
-  local subGroupName="$2"
+  local contextName="$1"
+  local typeName="$2"
 
-  [ "${groupName}" == "*" ] && groupName='[^/]*'
-  [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
-  [ "${groupName}" == "${vmCreateContext}" ] && unset subGroupDir
-  subGroupDir=$(vm_group_dir ${groupName} ${subGroupName})
+  [ "${contextName}" == "*" ] && contextName='[^/]*'
+  [ "${typeName}" == "*" ] && typeName='[^/]*'
+  [ "${contextName}" == "${vmCreateContext}" ] && unset typeDir
+  typeDir=$(vm_context_dir ${contextName} ${typeName})
 
-  for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${subGroupDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
+  for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${typeDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
   do
     vmName=$(echo ${vmPath} | sed -r 's:.*/([^/]+)$:\1:')
-    vmGroup=$(echo ${vmPath} | sed -r "s:/${vmName}::")
+    vmContext=$(echo ${vmPath} | sed -r "s:/${vmName}::")
     vmMac=$(vm_get_mac ${vmName})
     vmIP=$(grep " ${vmMac} " /var/lib/misc/dnsmasq.leases | cut -d " " -f 3)
-    echo ${vmName} ${vmGroup} ${vmIP}
+    echo ${vmName} ${vmContext} ${vmIP}
   done
 }
 
@@ -298,14 +298,14 @@ vm_configure() {
 vm_instantiate() {
   local vmTemplate=$1
   local vmCount=$2
-  local vmGroup=$3
-  local vmSubGroup=$4
+  local vmContext=$3
+  local vmType=$4
   local vmOpts=$5
 
-  [ -z ${vmGroup} ] && vmGroup=${vmDefaultContext}
-  [ -z ${vmSubGroup} ] && vmSubGroup=${vmDefaultType}
+  [ -z ${vmContext} ] && vmContext=${vmDefaultContext}
+  [ -z ${vmType} ] && vmType=${vmDefaultType}
 
-  local vmDir=$(vm_group_dir ${vmGroup} ${vmSubGroup})
+  local vmDir=$(vm_context_dir ${vmContext} ${vmType})
   local vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateContext})
   local vmTemplateConf=$(vm_conf_file ${vmTemplate} ${vmCreateContext})
 
@@ -336,18 +336,18 @@ vm_instantiate() {
     [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
     [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
-    local vmDisk=$(vm_clone_disk ${vmCreateContext} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
+    local vmDisk=$(vm_clone_disk ${vmCreateContext} "" ${vmTemplate} ${vmContext} ${vmType} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
     [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
     local dskList=
     if [ -n "${dskOpt}" ] ; then
       for dskSize in $(echo ${dskOpt} | tr ',' ' ')
       do
-        dskName=$(vm_disk_create ${vmName} ${vmGroup} ${vmSubGroup} ${dskSize})
+        dskName=$(vm_disk_create ${vmName} ${vmContext} ${vmType} ${dskSize})
         [ -z "${dskList}" ] && dskList="${dskName}" || dskList="${dskList},${dskName}"
       done
     fi
-    local vmConf=$(vm_conf_file ${vmName} ${vmGroup} ${vmSubGroup})
+    local vmConf=$(vm_conf_file ${vmName} ${vmContext} ${vmType})
     cat > ${vmConf} <<EOF
 vmName=${vmName}
 vmUuid=${vmUuid}
@@ -357,7 +357,7 @@ vmDisk=${vmDisk}
 vmExtraDisk=${dskList}
 vmGui=${guiOpt}
 EOF
-    vm_run ${vmName} ${vmGroup} ${vmSubGroup} none ${guiOpt}
+    vm_run ${vmName} ${vmContext} ${vmType} none ${guiOpt}
     vmList="${vmList} ${vmName}"
     vmIdx=$(echo ${vmIdx} | sed 's/^0*//')
     vmIdx=$((vmIdx+1))
@@ -378,12 +378,12 @@ EOF
 
 is_vm_running() {
   local vmName=$1
-  local vmGroup=$2
-  local vmSubGroup=$3
+  local vmContext=$2
+  local vmType=$3
 
-  [ -z "${vmGroup}" ] && vmGroup="*"
-  [ -z "${vmSubGroup}" ] && vmSubGroup="*"
-  local vmIsRunning=$(vm_running "${vmGroup}" "${vmSubGroup}" | grep "^${vmName} " | wc -l)
+  [ -z "${vmContext}" ] && vmContext="*"
+  [ -z "${vmType}" ] && vmType="*"
+  local vmIsRunning=$(vm_running "${vmContext}" "${vmType}" | grep "^${vmName} " | wc -l)
   echo ${vmIsRunning}
   [ ${vmIsRunning} -eq 1 ] && return 0 || return 1
 }
@@ -441,7 +441,7 @@ vm_name() {
   echo $vmName
 }
 
-vm_group() {
+vm_context() {
   local vmName=$1
   local runningVmByName=$(vm_running "*" "*" | grep ${vmName} | wc -l)
 
@@ -465,8 +465,8 @@ vm_type() {
     local vmByName=$(ls -d ${vmBaseDir}/*/*/${vmName} | wc -l)
     [ ${vmByName} -eq 0 ] && error "No VM named ${vmName}"
     [ ${vmByName} -gt 1 ] && error "There are multiple VMs named ${vmName}"
-    local vmGroup=$(vm_group ${vmName})
-    (cd ${vmBaseDir}/${vmGroup} ; ls -d */${vmName} | sed 's:/.*::')
+    local vmContext=$(vm_context ${vmName})
+    (cd ${vmBaseDir}/${vmContext} ; ls -d */${vmName} | sed 's:/.*::')
   fi
 }
 
@@ -494,13 +494,13 @@ vm_spice_port() {
   pgrep -f qemu-system-${vmSystemType} -a | grep ${vmName} | sed 's/^.*-spice port=//;s/,.*$//'
 }
 
-vm_group_destroy() {
-  local groupName=$1
+vm_context_destroy() {
+  local contextName=$1
 
-  local subGroupName="*"
+  local typeName="*"
   local vmName="*"
-  rm ${vmBaseDir}/${groupName}/${subGroupName}/${vmName}/*
-  rmdir ${vmBaseDir}/${groupName}/${subGroupName}/${vmName}
-  rmdir ${vmBaseDir}/${groupName}/${subGroupName} 2>/dev/null
-  rmdir ${vmBaseDir}/${groupName}/ 2>/dev/null
+  rm ${vmBaseDir}/${contextName}/${typeName}/${vmName}/*
+  rmdir ${vmBaseDir}/${contextName}/${typeName}/${vmName}
+  rmdir ${vmBaseDir}/${contextName}/${typeName} 2>/dev/null
+  rmdir ${vmBaseDir}/${contextName}/ 2>/dev/null
 }

@@ -165,11 +165,11 @@ test_vm_name_returns_correct_name() {
   assert_equals "$(vm_name ${vmIp})" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
 }
 
-### vm_group
+### vm_context
 
-test_vm_group_returns_group() {
+test_vm_context_returns_group() {
   local vmName=$(vm_instantiate archlinux 1 ${test_group} ${test_type} | xargs)
-  local vmGroup=$(vm_group ${vmName})
+  local vmGroup=$(vm_context ${vmName})
   assert_equals "${test_group}" "${vmGroup}"
 }
 

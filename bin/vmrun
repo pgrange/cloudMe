@@ -58,7 +58,7 @@ stop_and_destroy_all() {
   log "I am being told to shut down and destroy all running VMs."
   stop_all
   log "removing files"
-  vm_group_destroy ${contextName}
+  vm_context_destroy ${contextName}
   log "Good bye !"
   exit
 }
@@ -123,7 +123,7 @@ vms=$(vm_running "${contextName}" "*" | cut -d ' ' -f 1 | xargs)
 if [ -n "${vms}" ] ; then
   log "${contextName} is not empty !"
   for vm in ${vms} ; do
-    log "${vm} is of $(vm_type ${vm}) type in $(vm_group ${vm}) context"
+    log "${vm} is of $(vm_type ${vm}) type in $(vm_context ${vm}) context"
   done
 fi
 
@@ -131,7 +131,7 @@ if [ -n "${contextConfFile}" ] ; then
   vms=$(run_from_spec ${contextConfFile})
   for vm in ${vms}
   do
-    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) context"
+    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_context ${vm}) context"
   done
 fi
 
@@ -142,7 +142,7 @@ if [ -n "${specLines}" ] ; then
   rm ${specFile}
   for vm in ${vms}
   do
-    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) context"
+    log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_context ${vm}) context"
   done
 else
   contexts=$(ls ${vmBaseDir} | grep -v "${vmCreateContext}")
@@ -154,7 +154,7 @@ else
     for vmName in $(ls ${vmBaseDir}/${contextName}/${type})
     do
       vm_run ${vmName} ${contextName} ${type} none ${guiOpt}
-      log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_group ${vmName}) context"
+      log "${vmName} of $(vm_type ${vmName}) type has been spawned in $(vm_context ${vmName}) context"
       vms="${vms} ${vmName}"
     done
   done
