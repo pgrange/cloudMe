@@ -103,7 +103,7 @@ case $command in
     vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\bdelete\b/-d/g')"
     vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\blist\b/-l/g')"
     vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\btag\b/-i/g')"
-    exec ${vmrun_command}
+    exec ${vmsnap_command}
     ;;
   inventory) exec vminventory ;;
   --list) exec vminventory --list ;;
