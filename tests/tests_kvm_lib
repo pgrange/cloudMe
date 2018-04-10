@@ -56,7 +56,7 @@ test_vm_mac_gen_generates_mac_address() {
 
 test_vm_get_mac_gets_real_mac() {
   local vmName=$(vm_instantiate archlinux 1 ${test_context} ${test_type} | xargs)
-  local vmRealMac=$(vm_ssh ${vmName} ip a show | sed -r '/link\/ether/!d;s/.*link\/ether ([^ ]*) brd.*/\1/' | sort | uniq)
+  local vmRealMac=$(vm_ssh ${vmName} ip a show 2>/dev/null | sed -r '/link\/ether/!d;s/.*link\/ether ([^ ]*) brd.*/\1/' | sort | uniq)
   local vmGetMac=$(vm_get_mac ${vmName})
   assert "grep ${vmGetMac} <(echo -e ${vmRealMac})" "mac address does not appear on machine"
 }
@@ -100,9 +100,9 @@ test_vm_running_retrives_launched_vm() {
 
 test_vm_configure_sets_hostname() {
   local vmName=$(vm_instantiate archlinux 1 ${test_context} ${test_type} | xargs)
-  vm_ssh ${vmName} true
+  vm_ssh ${vmName} true 2>/dev/null
   sleep 1
-  assert_equals "${vmName}" "$(vm_ssh ${vmName} cat /etc/hostname)" "host name has not been set"
+  assert_equals "${vmName}" "$(vm_ssh ${vmName} cat /etc/hostname 2>/dev/null)" "host name has not been set"
 }
 
 ### vm_instantiate
@@ -128,7 +128,7 @@ test_is_vm_running_returns_0_when_vm_is_not_running() {
 test_vm_ssh_connects_to_vm() {
   local vmName=$(vm_instantiate archlinux 1 ${test_context} ${test_type} | xargs)
   local vmIp=$(vm_ip ${vmName})
-  assert "vm_ssh ${vmIp} echo connected | grep \"connected\"" "did not connect to the vm"
+  assert "vm_ssh ${vmIp} echo connected 2>/dev/null | grep \"connected\"" "did not connect to the vm"
 }
 
 ### vm_ip
@@ -137,12 +137,12 @@ test_vm_ip_returns_correct_ip() {
   local template_name=archlinux
   local vmName=$(vm_instantiate ${template_name} 1 ${test_context} ${test_type} | xargs)
   local vmIp=$(vm_ip ${vmName})
-  local actual_vm_name=$(vm_ssh ${vmIp} hostname)
+  local actual_vm_name=$(vm_ssh ${vmIp} hostname 2>/dev/null)
   while [ "${actual_vm_name}" == "${template_name}" ] ; do
     sleep 1
-    actual_vm_name=$(vm_ssh ${vmIp} hostname)
+    actual_vm_name=$(vm_ssh ${vmIp} hostname 2>/dev/null)
   done
-  assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname)" "ip address does not match the vm"
+  assert_equals "${vmName}" "$(vm_ssh ${vmIp} hostname 2>/dev/null)" "ip address does not match the vm"
 }
 
 ### vm_name
@@ -153,16 +153,16 @@ test_vm_name_returns_correct_name() {
   local vmIp=$(vm_ip ${vmName})
   local maxwait=20
   local vmNameRes=$(vm_name ${vmIp})
-  local vmKnownName=$(vm_ssh ${vmIp} hostname)
+  local vmKnownName=$(vm_ssh ${vmIp} hostname 2>/dev/null)
   while [ "${vmNameRes}" == "${template_name}" -a "${vmNameRes}" != "${vmKnownName}" -a $maxwait -gt 0 ]
   do
     sleep 1
     maxwait=$((maxwait-1))
     echo -n .
     vmNameRes=$(vm_name ${vmIp})
-    vmKnownName=$(vm_ssh ${vmIp} hostname)
+    vmKnownName=$(vm_ssh ${vmIp} hostname 2>/dev/null)
   done
-  assert_equals "$(vm_name ${vmIp})" "$(vm_ssh ${vmIp} hostname)" "name does not match the vm"
+  assert_equals "$(vm_name ${vmIp})" "$(vm_ssh ${vmIp} hostname 2>/dev/null)" "name does not match the vm"
 }
 
 ### vm_context

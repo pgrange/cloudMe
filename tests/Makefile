@@ -1,2 +1,2 @@
 tests :
-	./tests_kvm_lib
+	./bash_unit tests_kvm_lib
