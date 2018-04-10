@@ -24,7 +24,7 @@ usage() {
   but if you don't pass any option, you will have a list of running VMs
   --list : outputs json inventory, suitable for ansible dynamic inventory
   -L : list existing VMs in context (or all contexts if set to all)
-  -c : limit output to specified context. Alternative to NC_CONTEXT environment variable. Default = context.
+  -c : limit output to specified context. Alternative to NC_CONTEXT environment variable. Default = ${vmDefaultContext}.
        if set to all, displays all VM of all contexts.
   -g : equivalent to -c (kept for compatibility)
   -h : display this help
@@ -40,7 +40,7 @@ libName=cm_lib
 [ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
-context="context"
+context="${vmDefaultContext}"
 typeName="*"
 
 inventory() {
@@ -55,7 +55,7 @@ inventory() {
 
     host=$(echo "$line" | cut -d "/" -f 1)
     context=$(echo "$line" | cut -d "/" -f 2)
-    if [ "${context}" == "${vmCreateGroup}" ] ; then
+    if [ "${context}" == "${vmCreateContext}" ] ; then
       type=${context}
       ip=$(echo "$line" | cut -d "/" -f 3)
     else
@@ -151,7 +151,7 @@ if [ ${inventoryMode} -eq 1 ] ; then
   inventory "${context}" "${typeName}"
 elif [ ${listMode} -eq 1 ] ; then
   cd ${vmBaseDir}
-  [ "${context}" == "*" ] || treeOpt="-I ${vmCreateGroup}"
+  [ "${context}" == "*" ] || treeOpt="-I ${vmCreateContext}"
   [ "${context}" == "*" -o -d "${context}" ] && tree --noreport -d ${context} ${treeOpt}
   cd - >/dev/null 2>&1
 else

@@ -26,7 +26,7 @@ usage() {
   Manages running VMs
   -m : connects to the qemu console of a vm
   -C : connects to the vm console
-  -c : restrict selection to this context. Alternative to NC_CONTEXT environment variable. Default = context.
+  -c : restrict selection to this context. Alternative to NC_CONTEXT environment variable. Default = ${vmDefaultContext}.
   -g : alternative to -c, kept for compatibility
   -t : restrict selection to this type
   -T : launch a template
@@ -51,7 +51,7 @@ modeName=
 vmName=
 isoName=
 floppyName=
-contextName="context"
+contextName="${vmDefaultContext}"
 [ -n "${NC_CONTEXT}" ] && contextName=${NC_CONTEXT}
 typeName="*"
 stopDestroy=0
@@ -121,7 +121,7 @@ case ${modeName} in
     ;;
   "template")
     [ -z ${vmName} ] && usage "VM name is mandatory"
-    vmContext=${vmCreateGroup}
+    vmContext=${vmCreateContext}
     chmod +w $(vm_dir ${vmName} ${vmContext})/$(vm_disks ${vmName} ${vmContext} | head -1)
     is_vm_running ${vmName} ${vmContext} > /dev/null && usage "Machine is already running" || vm_run ${vmName} ${vmContext} ""
     ;;
@@ -131,10 +131,10 @@ case ${modeName} in
     do
       vmType=$(echo ${vmContext} | cut -d "/" -f 2)
       vmContext=$(echo ${vmContext} | cut -d "/" -f 1)
-      [ "${vmContext}" == "${vmCreateGroup}" ] && vmType=""
+      [ "${vmContext}" == "${vmCreateContext}" ] && vmType=""
       vm_stop ${vmName} ${vmContext} ${vmType}
     done
-    [ "${contextName}" == "${vmCreateGroup}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateGroup}"
+    [ "${contextName}" == "${vmCreateContext}" -a $stopDestroy -eq 1 ] && usage "can't drop ${vmCreateContext}"
     [ $stopDestroy -eq 1 ] && vm_group_destroy ${contextName}
     ;;
 esac

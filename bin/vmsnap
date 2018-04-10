@@ -30,7 +30,7 @@ usage() {
   -l : list snapshots for VM_NAME
   -i : specify snapshot TAG
   -c and -t : optionnaly specify context and type. NC_CONTEXT environment variable is available to set context
-              default context name is 'context'
+              default context name is '${vmDefaultContext}'
   -g : alternative to -c. Kept for compatibility
   -h : display this help
   -v : display version and exit" >&2
@@ -47,7 +47,7 @@ libName=cm_lib
 mode=0
 modeName=
 vmName=
-contextName="context"
+contextName="${vmDefaultContext}"
 [ -n "${NC_CONTEXT}" ] && contextName=${NC_CONTEXT}
 typeName="*"
 while getopts s:r:d:l:i:g:c:t:hv name

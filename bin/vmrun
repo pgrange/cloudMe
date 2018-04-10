@@ -22,7 +22,7 @@ stopSignal=SIGUSR1
 usage() {
   echo "$@" >&2
   echo "usage : $(basename $0) -c <CONTEXT> [ -f <FILE> | -m specline ] [ -G ]
-  -c : specify context to run VM in. Alternative to NC_CONTEXT environment variable. Default = context.
+  -c : specify context to run VM in. Alternative to NC_CONTEXT environment variable. Default = ${vmDefaultContext}.
   -g : alternative to -c. Kept for compatibility
   -f <FILE> : instanciate servers based on a configuration file. View documentation for file format.
   -m : give a vm specification (as provided to -f option)
@@ -89,7 +89,7 @@ libName=cm_lib
 [ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
 
 vmName=
-contextName="context"
+contextName="${vmDefaultContext}"
 [ -n "${NC_CONTEXT}" ] && contextName=${NC_CONTEXT}
 guiOpt=
 specLines=
@@ -145,7 +145,7 @@ if [ -n "${specLines}" ] ; then
     log "${vm} of $(vm_type ${vm}) type has been spawned in $(vm_group ${vm}) context"
   done
 else
-  contexts=$(ls ${vmBaseDir} | grep -v "${vmCreateGroup}")
+  contexts=$(ls ${vmBaseDir} | grep -v "${vmCreateContext}")
   echo ${contexts} | tr ' ' '\n' | grep "^${contextName}$" >/dev/null || usage "${contextName} is no known context"
   types=$(ls ${vmBaseDir}/${contextName})
   [ -z "${types}" ] && usage "no type for context ${contextName}"

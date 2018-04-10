@@ -92,12 +92,12 @@ vm_disks() {
 
 vm_disk_create() {
   local vmName=$1
-  local vmCreateGroup=$2
+  local vmCreateContext=$2
   local vmCreateType=$3
   local vmCreateDiskSize=$4
 
-  local vmDir=$(vm_dir ${vmName} ${vmCreateGroup} ${vmCreateType})
-  [ -n "${vmCreateType}" ] && vmCreateGroup=${vmCreateGroup}/${vmCreateType}
+  local vmDir=$(vm_dir ${vmName} ${vmCreateContext} ${vmCreateType})
+  [ -n "${vmCreateType}" ] && vmCreateContext=${vmCreateContext}/${vmCreateType}
   local vmDiskCount=0
   while [ -f "${vmDir}/${vmName}_${vmDiskCount}.${vmDiskExt}" ] ; do vmDiskCount=$((vmDiskCount+1)) ; done
   local vmDisk="${vmName}_${vmDiskCount}.${vmDiskExt}"
@@ -273,7 +273,7 @@ vm_running() {
 
   [ "${groupName}" == "*" ] && groupName='[^/]*'
   [ "${subGroupName}" == "*" ] && subGroupName='[^/]*'
-  [ "${groupName}" == "${vmCreateGroup}" ] && unset subGroupDir
+  [ "${groupName}" == "${vmCreateContext}" ] && unset subGroupDir
   subGroupDir=$(vm_group_dir ${groupName} ${subGroupName})
 
   for vmPath in $(pgrep -f qemu-system-${vmSystemType} -a | grep "file=${subGroupDir}/" | sed -r "s:^.* file\=${vmBaseDir}/::;s:/[^/]+,.*::")
@@ -302,12 +302,12 @@ vm_instantiate() {
   local vmSubGroup=$4
   local vmOpts=$5
 
-  [ -z ${vmGroup} ] && vmGroup=${vmDefaultGroup}
-  [ -z ${vmSubGroup} ] && vmSubGroup=${vmDefaultSubGroup}
+  [ -z ${vmGroup} ] && vmGroup=${vmDefaultContext}
+  [ -z ${vmSubGroup} ] && vmSubGroup=${vmDefaultType}
 
   local vmDir=$(vm_group_dir ${vmGroup} ${vmSubGroup})
-  local vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateGroup})
-  local vmTemplateConf=$(vm_conf_file ${vmTemplate} ${vmCreateGroup})
+  local vmTemplateDir=$(vm_dir ${vmTemplate} ${vmCreateContext})
+  local vmTemplateConf=$(vm_conf_file ${vmTemplate} ${vmCreateContext})
 
   local memOpt=${tmplt_vmMem}
   local cpuOpt=${tmplt_vmCpu}
@@ -336,7 +336,7 @@ vm_instantiate() {
     [ ${vmIdx} -lt 10 ] && vmIdx="0${vmIdx}"
     [ -n "${nameOpt}" ] && vmName=${nameOpt}${vmIdx}
     [ -f ${vmDir}/${vmName} ] || mkdir -p ${vmDir}/${vmName}
-    local vmDisk=$(vm_clone_disk ${vmCreateGroup} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
+    local vmDisk=$(vm_clone_disk ${vmCreateContext} "" ${vmTemplate} ${vmGroup} ${vmSubGroup} ${vmName})
     [ -z ${memOpt} ] && memOpt=${tmplt_vmMem}
     [ -z ${cpuOpt} ] && cpuOpt=${tmplt_vmCpu}
     local dskList=
