@@ -23,7 +23,7 @@ usage() {
    or : $(basename $0) -c TEMPLATE_NAME -i ISO_NAME
    or : $(basename $0) -L
   -d : download a template. TEMPLATE_NAME is one of ${vmTemplates}
-  -c : create a template ou t of iso
+  -C : create a template ou t of iso
   -i : specify isoName
   -L : list existing templates
   -h : display this help
@@ -42,14 +42,14 @@ vmTemplate=
 downloadMode=0
 createMode=0
 isoName=
-while getopts d:c:i:Lhv name
+while getopts d:C:i:Lhv name
 do
   case $name in
     d)
       downloadMode=1
       vmTemplate=$OPTARG
       ;;
-    c)
+    C)
       createMode=1
       vmTemplate=$OPTARG
       ;;
