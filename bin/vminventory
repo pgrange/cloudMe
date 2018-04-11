@@ -45,7 +45,7 @@ typeName="*"
 
 inventory() {
   local contextName="$1"
-  local typeName="$1"
+  local typeName="$2"
   local line host context type ip previous_context previous_type children hosts
 
   echo "{"
