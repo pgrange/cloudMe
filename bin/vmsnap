@@ -19,10 +19,10 @@
 
 usage() {
   echo "$@" >&2
-  echo "usage : $(basename $0) -s <VM_NAME> [ -c <GROUP> [ -t <TYPE> ] ]
-   or : $(basename $0) -r <VM_NAME> -i <SNAPTAG> [ -c <GROUP> [ -t <TYPE> ] ]
-   or : $(basename $0) -d <VM_NAME> -i <SNAPTAG> [ -c <GROUP> [ -t <TYPE> ] ]
-   or : $(basename $0) -l <VM_NAME> [ -c <GROUP> [ -t <TYPE> ] ]
+  echo "usage : $(basename $0) -s <VM_NAME> [ -c <CONTEXT> [ -t <TYPE> ] ]
+   or : $(basename $0) -r <VM_NAME> -i <SNAPTAG> [ -c <CONTEXT> [ -t <TYPE> ] ]
+   or : $(basename $0) -d <VM_NAME> -i <SNAPTAG> [ -c <CONTEXT> [ -t <TYPE> ] ]
+   or : $(basename $0) -l <VM_NAME> [ -c <CONTEXT> [ -t <TYPE> ] ]
   Manages VMs snapshots.
   -s : creates a snapshot of VM_NAME
   -r : restores VM_NAME in the state of the snapshot with tag SNAPTAG

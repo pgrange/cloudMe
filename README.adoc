@@ -182,7 +182,7 @@ The file (named pftest) is called with the following command :
 
 And so the machines will be in the tst context.
 
-Groups and types, besides being structural in the VM directory structure, and for naming purpose, will be used for instance if you configure those machines with ansible. Once the previous instanciation has been done, you can use dynamic inventory :
+Contexts and types, besides being structural in the VM directory structure, and for naming purpose, will be used for instance if you configure those machines with ansible. Once the previous instanciation has been done, you can use dynamic inventory :
 
  vminventory --list
  {

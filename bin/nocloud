@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+#    (c) 2016-2017, n0vember <n0vember@half-9.net>
+#
+#    This file is part of nocloud.
+#
+#    nocloud is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    nocloud is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with nocloud.  If not, see <http://www.gnu.org/licenses/>.
+
+usage() {
+  echo "$@" >&2
+  echo "usage : $(basename $0) command
+
+  command is one of the following :
+
+    template download TEMPLATE_NAME - download a template. TEMPLATE_NAME is one of ${vmTemplates}
+    template create TEMPLATE_NAME ISO - create a new template from iso file
+    template list - list existing templates
+    template run TEMPLATE_NAME - run a template for maintenance purpose. WARNING this will arm machines based on this template
+
+    run machines SPECLINE - run machines from specline (see doc). Multiple machines arg can be specified
+    run file FILENAME - run machines from context file. Each file line is a specfile
+      common run options :
+      add 'gui' option to enable graphical interface to launched vms
+      add 'daemon' option to enable running in foreground (use for daemons)
+
+    stop - will stop running machines in the context
+
+    destroy - will stop running machines in the context and will destroy the context and all its machines
+
+    snap take VM_NAME - take a snapshot for VM_NAME
+    snap list VM_NAME - list snapshots for VM_NAME
+    snap restore VM_NAME tag TAG - restore VM_NAME from TAG snapshot
+    snap delete VM_NAME tag TAG - delete TAG snapshot for VM_NAME machine
+
+    inventory - will list running machines in the context
+      note :
+      $(basename $0) can be used as an ansible dynamic inventory
+
+    console - connect to the machine's console
+
+    qemu VM_NAME - connect to qemu console of machine VM_NAME
+      common qemu options :
+      add 'iso ISO' to mount ISO file as a cd/dvd in the machine
+      add 'floppy IMG' to mount IMG file as a floppy in the machine
+      if ISO or IMG equal 'none' the device is unmounted
+
+  " >&2
+  exit 1
+}
+
+realMe=$(readlink -e $0)
+realDir=$(dirname ${realMe})
+libDir=../lib
+libName=cm_lib
+[ -d "${realDir}/${libDir}" ]  || usage "${libDir} directory was not found in ${realDir} : Installation problem."
+[ -f "${realDir}/${libDir}/${libName}" ] && . ${realDir}/${libDir}/${libName} || usage "${libName} was not found in ${realDir}/${libDir} : Installation problem."
+
+context="${vmDefaultContext}"
+[ -n "${NC_CONTEXT}" ] && context="${NC_CONTEXT}"
+
+[ $# -eq 0 ] && usage no argument given
+command=$1
+shift
+
+case $command in
+  template)
+    [ $# -eq 0 ] && usage no argument given to template command
+    sub_command=$1
+    shift
+    case $sub_command in
+      download) exec vmtemplate -d $1 ;;
+      create) exec vmtemplate -C $1 -i $2 ;;
+      list) exec vmtemplate -L ;;
+      run) exec vmmanage -T $1 ;;
+      *) usage unknown argument given to template command ;;
+    esac
+    ;;
+  run)
+    vmrun_command="vmrun $@"
+    vmrun_command="$(echo "${vmrun_command}" | sed 's/\bmachines\b/-m/g')"
+    vmrun_command="$(echo "${vmrun_command}" | sed 's/\bfile\b/-f/g')"
+    vmrun_command="$(echo "${vmrun_command}" | sed 's/\bdaemon\b/-d/g')"
+    vmrun_command="$(echo "${vmrun_command}" | sed 's/\bgui\b/-G/g')"
+    exec ${vmrun_command}
+    ;;
+  stop) exec vmmanage -s ;;
+  destroy) exec vmmanage -s -d ;;
+  snap)
+    vmsnap_command="vmsnap $@"
+    vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\btake\b/-s/g')"
+    vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\brestore\b/-r/g')"
+    vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\bdelete\b/-d/g')"
+    vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\blist\b/-l/g')"
+    vmsnap_command="$(echo "${vmsnap_command}" | sed 's/\btag\b/-i/g')"
+    exec ${vmsnap_command}
+    ;;
+  inventory) exec vminventory ;;
+  --list) exec vminventory --list ;;
+  console) exec vmmanage -C $@ ;;
+  qemu)
+    vmmanage_command="vmmanage -m $@"
+    vmmanage_command="$(echo "${vmmanage_command}" | sed 's/\biso\b/ -i /g')"
+    vmmanage_command="$(echo "${vmmanage_command}" | sed 's/\bfloppy\b/ -f /g')"
+    exec ${vmmanage_command}
+    ;;
+  help) usage ;;
+  version) version ;;
+  *) usage unknown option ${first_arg} ;;
+esac
+
+usage something went wrong

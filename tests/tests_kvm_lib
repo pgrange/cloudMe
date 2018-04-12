@@ -169,8 +169,8 @@ test_vm_name_returns_correct_name() {
 
 test_vm_context_returns_context() {
   local vmName=$(vm_instantiate archlinux 1 ${test_context} ${test_type} | xargs)
-  local vmGroup=$(vm_context ${vmName})
-  assert_equals "${test_context}" "${vmGroup}"
+  local vmContext=$(vm_context ${vmName})
+  assert_equals "${test_context}" "${vmContext}"
 }
 
 ### vm_type
