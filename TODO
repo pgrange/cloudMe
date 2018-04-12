@@ -28,14 +28,14 @@ RELEASE 2.1
 
 RELEASE 2.0
 
-... make uninstall
+xxx make uninstall
 ... systemv services
 >>> core - use environment variable to restrict to a group
    vvv make group option available in vminventory
    vvv rename the concept of group as context. All references across scripts must be uniform
    vvv make type the only name across scripts for type and subgroup
    vvv adapt scripts to take NC_CONTEXT variable as context if none specified, default context is then named default
-   ... make scripts options as uniform as possible
+   vvv make scripts options as uniform as possible - no overlap between major options (-c -t -h -v ...)
    ... abandon getopts ? find a way to have long options
 vvv vmrun - make -b default behaviour
 
