@@ -28,6 +28,8 @@ RELEASE 2.1
 
 RELEASE 2.0
 
+... groups and nat services
+... vmnat inclusion in nocloud command
 xxx make uninstall
 ... systemv services
 >>> core - use environment variable to restrict to a group
