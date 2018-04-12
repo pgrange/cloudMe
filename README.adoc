@@ -20,8 +20,8 @@ nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qem
 To install, get a template and instanciate 5 times this template :
 
  sudo make
- vmtemplate -d debian9
- vmrun -c test -m debian9:5:deb
+ nocloud template download debian9
+ nocloud run machines debian9:5:deb
 
 == Presentation
 
@@ -39,6 +39,8 @@ it is not :
 - bug free
 
 I therefore only have tested with Archlinux hosts and it has been reported to me to run on ubuntu. Debian, Centos and Archlinux guests were tested. And this is what will be used next as examples. Examples will be simple. Multiple options are available and are documented through the -h option of each script.
+
+NOTE : nocloud command replaces the vm commands (except vmssh)
 
 == System pre-requisites
 
@@ -104,7 +106,7 @@ Everything starts with a template.
 
 You first need to have an ISO of the system you want to install (ex: archlinux.iso). You then create a VM using this ISO :
 
- vmtemplate -c archlinux -i archlinux.iso
+ nocloud template create archlinux archlinux.iso
 
 Once the machine created, it will start and you will have to make your template corresponding to the following standards :
 
@@ -119,7 +121,7 @@ You can create as much templates as you want.
 
 You can download existing templates using this :
 
- vmtemplate -d archlinux
+ nocloud template download archlinux
 
 available templates can be listed with -h option
 
@@ -129,9 +131,9 @@ available templates can be listed with -h option
 
 Once your template is good, you can use it to generate new VMs :
 
- vmrun -g test -m archlinux:2:arch
+ nocloud run machines archlinux:2:arch
 
-will create two new machines, fresh copies from of the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
+will create two new machines, fresh copies from the template. Those machines will have generated names and the template's disk is set to read-only before creating the clones. The clones will run without graphical interface.
 
 In order to organize your VMs they are grouped. This is done using a two level hierarchy :
 
@@ -140,9 +142,9 @@ In order to organize your VMs they are grouped. This is done using a two level h
 
 For instance, you run your application named ''awesome'' constituted of a database serveur and two web servers. You would create the set with this line :
 
- vmrun -g awesome -m archlinux:2:web -m debian8:1:sql
+ NC_CONTEXT=awesome nocloud run machines archlinux:2:web machines debian8:1:sql
 
-Precision on VM specifications is given below.
+Precision on VM specifications and the NC_CONTEXT variable are given below.
 
 === Using description file
 
@@ -178,22 +180,22 @@ This will create a server called db00 for the first line and two servers on the 
 
 The file (named pftest) is called with the following command :
 
- vmrun -g tst -f pftest -b
+ nocloud run file pftest
 
-And so the machines will be in the tst context.
+And so the machines will be in the default context.
 
 Contexts and types, besides being structural in the VM directory structure, and for naming purpose, will be used for instance if you configure those machines with ansible. Once the previous instanciation has been done, you can use dynamic inventory :
 
- vminventory --list
+ nocloud --list
  {
-   "tst_sql" : {
+   "context_sql" : {
      "hosts" : [  "192.168.1.176", ],
    },
-   "tst_web" : {
+   "context_web" : {
      "hosts" : [  "192.168.1.19", "192.168.1.23", ],
    },
-   "tst" : {
-     "children" : [ "tst_sql", "tst_web", ],
+   "context" : {
+     "children" : [ "context_sql", "context_web", ],
      "vars": {
        "ansible_ssh_common_args": "-o StrictHostKeyChecking=no",
        "ansible_user": "root",
@@ -203,11 +205,11 @@ Contexts and types, besides being structural in the VM directory structure, and 
 
 You can then stop your VMs using (-d option destroys the machines) :
 
- vmmanage -g tst -s -d
+ nocloud destroy
 
-Alternatively, you can launch your description file using (without -b = background):
+Alternatively, you can launch your description file using daemon mode
 
- vmrun -g tst -f pftest
+ nocloud file pftest daemon
 
 It will stay in foreground and log (hopefuly) useful information until you press ^C which will make it kill and destroy all its machines.
 
@@ -225,25 +227,25 @@ It will stay in foreground and log (hopefuly) useful information until you press
         |           v
         |        __________        ___________
         v       /          \      |           |
-       iso --> | vmtemplate | --> | TEMPLATES |
+       iso --> |  template  | --> | TEMPLATES |
                 \__________/      |___________|      _______
                                         |           |$>     |
                                         |           |       |
                     _____               |           |_______|
                    /     \              |          /         \
-                  | vmrun | <------------         /___________\
+                  |  run  | <------------         /___________\
                    \____ /                            |
                       |        ________               v
                       |      _|______  |           _____
           ________    -->  _|______  | |          /     \
          /        \       |        | |_| <------ | vmssh |
-        | vmmanage | ---> |   VM   |_|            \____ /
+        |   stop   | ---> |   VM   |_|            \____ /
          \________/   |   |________|
                       |           |
           ________    |           v                                   _______
          /        \   |            __________                        |      |\
-        |  vmsnap  | --           /           \                      |   VM |_\
-         \________/              | vminventory |  -----------------> |  list   |
+        |   snap   | --           /           \                      |   VM |_\
+         \________/              |  inventory  |  -----------------> |  list   |
                                   \___________/                      |         |
                                                                      | - vm1   |
                                                                      | - vm2   |
@@ -251,29 +253,29 @@ It will stay in foreground and log (hopefuly) useful information until you press
 
 ----
 
-== Tools
+== nocloud commands
 
 
-=== vmtemplate - templates creation and downloading
+=== template - templates creation and downloading
 
-vmtemplate manages templates. It has two main functions : creating templates and downloading templates.
+template manages templates. It has two main functions : creating templates and downloading templates.
 
 You can download templates using the following form :
 
 ----
-vmtemplate -d TEMPLATE_NAME
+nocloud template download TEMPLATE_NAME
 ----
 
 Available templates are displayed by the -h option :
 
 ----
-vmtemplate -h
+nocloud template help
 ----
 
 You can create your own template with :
 
 ----
-vmtemplate -c TEMPLATE_NAME -i ISO_NAME
+nocloud template create TEMPLATE_NAME ISO_NAME
 ----
 
 * ISO_NAME is either the name of a template in configured iso directory, or a path to a file.
@@ -282,63 +284,137 @@ vmtemplate -c TEMPLATE_NAME -i ISO_NAME
 You can get the templates list with :
 
 ----
-vmtemplate -L
+nocloud template list
 ----
 
-=== vmrun - run all the VMs of a context
+=== run - run all the VMs of a context
 
-vmrun launches VMs from templates, using spec files or inline specifications. It can also rerun an existing context.
+run launches VMs from templates, using spec files or inline specifications. It can also rerun an existing context.
 
-To run from a spec file :
+To run from a spec file and the default context :
 
 ----
-vmrun -g my_context -f conffile
+nocloud run file conffile
 ----
 
 to run directly from the command line :
 
 ----
-vmrun -g my_context -m debian8:2:web -m debian8:1:sql
+nocloud run machines debian8:2:web machines debian8:1:sql
 ----
 
 More complete description of VM specifications can be found above in this documentation.
 
-=== vminventory - list all the running guests on the host
+=== inventory - list all the running guests on the host
 
-vminventory is used to list running and existing VMs.
+vminventory is used to list running VMs.
 
 To get running VMs :
 
 ----
-vminventory
+nocloud inventory
 ----
 
-To get existing (but not only running) contexts and types :
+nocloud also provides an ansible dynamic inventory, using the --list option. You can then call ansible or ansible-playbook using the script as inventory :
 
 ----
-vminventory -L
-----
-
-vminventory also provides an ansible dynamic inventory, using the --list option. You can then call ansible or ansible-playbook using the script as inventory :
-
-----
-ln -s /usr/local/bin/vminventory inventory
+ln -s /usr/local/bin/nocloud inventory
 ansible-playbook -i inventory playbook.yml
 ----
 
-the scope of vminventory can be limited to a single context, using -c option. This affects standard behaviour and --list option, but has no effect on -L which will list everything.
+the scope of inventory is limited to a single context. This affects standard behaviour and --list option, but you can have all running machines using the 'all' context
 
-=== vmmanage - managing running VMs
+----
+NC_CONTEXT=all nocloud inventory
+----
 
-vmmanage deals with running VMs and contexts maintainance. It can:
+=== stop & destroy - halting a context
 
-* connect to qemu console (vmmanage -m tst00)
-* connect to the VM console (vmmanage -c tst00)
-* launch a template (vmmanage -T archlinux)
-* stop a running context, and optionnaly destroy all of its VMs (vmmanage -s -g my_context)
-* insert an iso (vmmanage -m tst00 -i file.iso) that you'll have to mount in the VM
-* insert a floppy disk (vmmanage -m tst00 -f file.img) that you'll have to mount in the VM
-* eject an iso or a floppy by using "none" as the file name for iso of floppy)
+To stop all VMs of the context :
+
+----
+nocloud stop
+----
+
+To do the same and destroy all VMs in the process :
+
+----
+nocloud destroy
+----
+
+=== snap - manage snapshots
+
+This command allows four actions described below.
+
+==== Take a snapshot
+
+----
+nocloud snap take tst00
+----
+
+Depending on actual VM state, activity, memory size, etc, action will take some time or will not.
+
+==== List snapshots
+
+----
+nocloud snap list tst00
+ID        TAG                 VM SIZE                DATE       VM CLOCK
+--        vm-20171122144532      207M 2017-11-22 14:45:32   00:00:46.787
+--        vm-20171122144609      207M 2017-11-22 14:46:09   00:01:21.461
+--        vm-20171122145147      207M 2017-11-22 14:51:47   00:05:10.725
+--        vm-20171122145358      207M 2017-11-22 14:53:58   00:07:19.164
+----
+
+Snapshots named vm-YYYYmmddHHMMSS are those taken on a running VM. Snapshots named vd-YYYYmmddHHMMSS were taken on a stopped VM.
+
+==== Restore snapshot
+
+----
+nocloud snap restore tst00 vm-20171122145147
+----
+
+Restoring a vm snapshot results in a running VM, whatever its original state was. Restoring a vd- snapshot results in a stopped VM, here again, whatever current state is.
+
+==== Delete a snapshot
+
+----
+nocloud snap delete tst00 vm-20171122145147
+----
+=== console - accessing VM console
+
+To access the console of a VM (its screen) :
+
+----
+nocloud console VM_NAME
+----
+
+This will only be possible if you have spicy installed.
+
+=== qemu - accessing qemu menu and mount disks
+
+This option lets you access qemu control menu for a VM :
+
+----
+nocloud qemu VM_NAME
+----
+
+It will also help mounting isos and floppies :
+
+* insert a floppy disk that you'll have to mount in the VM
+
+----
+ nocloud qemu srv00 floppy file.img
+ nocloud qemu srv00 iso file.iso
+----
+
+* eject an iso or a floppy by using "none" as the iso of floppy file name
+
+----
+ nocloud qemu srv00 floppy none
+ nocloud qemu srv00 iso none
+----
+
+== other tools
 
 === vmssh - connect to VMs
 
@@ -357,6 +433,8 @@ vmupgrade runs a system upgrade on a template if it knows how. It currently know
 vmupgrade debian8
 ----
 
+NOTE : This is not to be used if any VM is actually based on the template. Or it will make it unusable.
+
 === vmnat - access specific ports
 
 Virtual machines are accessible from the host, but if you want to expose services to outside world, you will have to nat a host port to a guest port.
@@ -371,43 +449,4 @@ above command will create an iptables nat rule to access the 80 port of the gues
 
 ----
 vmnat -d 8080:tst00:80
-----
-
-=== vmsnap - take snapshots and restore them
-
-This command allows four actions described below.
-
-==== Take a snapshot
-
-----
-vmsnap -s tst00
-----
-
-Depending on actual VM state, activity, memory size, etc, action will take some time or will not.
-
-==== List snapshots
-
-----
-vmsnap -l tst00
-ID        TAG                 VM SIZE                DATE       VM CLOCK
---        vm-20171122144532      207M 2017-11-22 14:45:32   00:00:46.787
---        vm-20171122144609      207M 2017-11-22 14:46:09   00:01:21.461
---        vm-20171122145147      207M 2017-11-22 14:51:47   00:05:10.725
---        vm-20171122145358      207M 2017-11-22 14:53:58   00:07:19.164
-----
-
-Snapshots named vm-YYYYmmddHHMMSS are those taken on a running VM. Snapshots named vd-YYYYmmddHHMMSS were taken on a stopped VM.
-
-==== Restore snapshot
-
-----
-vmsnap -r tst00 -i vm-20171122145147
-----
-
-Restoring a vm- snapshot results in a running VM, whatever its original state was. Restoring a vd- snapshot results in a stopped VM, here again, whatever current state is.
-
-==== Delete a snapshot
-
-----
-vmsnap -d tst00 -i vm-20171122145147
 ----
