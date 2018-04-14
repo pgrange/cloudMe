@@ -50,6 +50,7 @@ Following things needs to be installed on your machine :
 - dnsmasq
 - make
 - tree
+- uuidgen
 
 Note that for users to use kvm and nocloud, you must add them to the kvm group. The user proceeding to installation is added during the process. If you want to add other users :
 
