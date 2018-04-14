@@ -17,9 +17,14 @@ toc::[]
 
 nocloud is a set of tools to run a mini-cloud on your machine based on kvm / qemu and written in bash.
 
-To install, get a template and instanciate 5 times this template :
+To install nocloud :
 
+ git clone git@github.com:n0vember/nocloud.git 
+ cd nocloud
  sudo make
+ 
+To download a vm template and instanciate 5 times this template :
+
  nocloud template download debian9
  nocloud run machines debian9:5:deb
 
