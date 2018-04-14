@@ -113,7 +113,7 @@ Once the machine created, it will start and you will have to make your template 
 - VM must be accessible through ssh (ssh service enabled and configured on 22 port)
 - ssh key (found in /usr/local/etc/nocloud.pub) must be added to /root/.ssh/authorized_keys
 - network is using dhcp (dhcp service is enabled)
-- python is better to be installed has ansible is the tool of choice to operate on those VMs
+- python is better to be installed as ansible is the tool of choice to operate on those VMs
 
 You can create as much templates as you want.
 
