@@ -140,7 +140,7 @@ In order to organize your VMs they are grouped. This is done using a two level h
 - context will represent a kind of platform, a set of machines you use for a service.
 - types will be subgroups of servers that will group VMs by function.
 
-For instance, you run your application named ''awesome'' constituted of a database serveur and two web servers. You would create the set with this line :
+For instance, you run your application named ''awesome'' constituted of a database server and two web servers. You would create the set with this line :
 
  NC_CONTEXT=awesome nocloud run machines archlinux:2:web machines debian8:1:sql
 
