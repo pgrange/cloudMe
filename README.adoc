@@ -76,7 +76,7 @@ Note : if you restart your iptables, the nocloud rules will be dropped. no-cloud
 
 Only thing to do is :
 
- git clone git@github.com:n0vember/nocloud.git
+ git clone https://gitlab.com/n0vember/nocloud
  cd nocloud
  sudo make
 
